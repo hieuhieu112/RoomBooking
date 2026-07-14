@@ -1,0 +1,28 @@
+server:
+  port: 8082
+app:
+  jwt:
+    accesssecret: bmd1b2kgZGFuIGJhIGNvIGNheSBjYSBsZW0gc2ljdWxh
+    refreshsecret: bmd1b2kgZGFuIG9uZyBjbyBjb24gY29uZyBraG9uZyBuZ3U=
+    access-token-expire-seconds: 10000000
+    refresh-token-expire-seconds: 86400
+
+  cookie:
+    secure: false
+    same-site: Lax
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/room-booking
+    username: postgres
+    password: hieu
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+file:
+  upload-dir: D:/upload-avatar/
+logging:
+  level:
+    org.springframework.web: DEBUG

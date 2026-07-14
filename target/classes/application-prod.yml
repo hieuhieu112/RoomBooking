@@ -1,0 +1,30 @@
+server:
+  port: 8080
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:dev}
+
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+
+app:
+  jwt:
+    accesssecret: ${JWT_ACCESS_SECRET}
+    refreshsecret: ${JWT_REFRESH_SECRET}
+    accessTokenExpireSeconds: 900
+    refreshTokenExpireSeconds: 86400
+
+  cookie:
+    secure: false
+    same-site: Lax
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+logging:
+  level:
+    org.springframework.web: INFO
