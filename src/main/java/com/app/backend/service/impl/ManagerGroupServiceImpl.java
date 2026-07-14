@@ -1,22 +1,32 @@
 package com.app.backend.service.impl;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
+import com.app.backend.constant.RedisKey;
+import com.app.backend.service.CacheService;
+import com.app.backend.service.RedisService;
+import java.time.Duration;
+import java.util.Arrays;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.app.backend.exception.CommonException;
+import com.app.backend.exception.ErrorCode;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 import com.app.backend.entity.ManagerGroup;
 import com.app.backend.repository.ManagerGroupRepository;
-import com.app.backend.service.ManagerGroupService;
+import com.app.backend.service.intf.ManagerGroupService;
 
 @Service
 @Transactional
 @RequiredArgsConstructor
 public class ManagerGroupServiceImpl implements ManagerGroupService {
     private final ManagerGroupRepository repo;
+    private final CacheService cacheService;
+
+    private static final Duration MANAGERGROUP_CACHE_TTL = Duration.ofMinutes(15);
+    private final RedisService redisService;
 
     public ManagerGroupResponse mapToResponse(ManagerGroup entity) {
         ManagerGroupResponse resp = new ManagerGroupResponse();
@@ -30,17 +40,29 @@ public class ManagerGroupServiceImpl implements ManagerGroupService {
         ManagerGroup entity = new ManagerGroup();
         entity.setName(request.getName());
         entity = repo.save(entity);
+        evictTopicCache(null);
         return entity;
     }
 
     @Override
     public ManagerGroup getById(Integer id) {
-        return repo.findById(id).orElseThrow();//repo.findById(id).map(this::mapToResponse).orElse(null);
+        return cacheService.getOrLoad(
+                RedisKey.managerGroupById(id),
+                ManagerGroup.class,
+                MANAGERGROUP_CACHE_TTL,
+                () -> repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.MANAGER_GROUP_NOT_FOUND))
+        );
     }
 
     @Override
     public List<ManagerGroup> getAll() {
-        return repo.findAll();
+        ManagerGroup[] items = cacheService.getOrLoad(
+                RedisKey.managerGroupAll(),
+                ManagerGroup[].class,
+                MANAGERGROUP_CACHE_TTL,
+                () -> repo.findAll().toArray(new ManagerGroup[0])
+        );
+        return Arrays.asList(items);
     }
 
     @Override
@@ -48,9 +70,22 @@ public class ManagerGroupServiceImpl implements ManagerGroupService {
         ManagerGroup entity = repo.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
         entity.setName(request.getName());
         entity = repo.save(entity);
+        evictTopicCache(null);
         return entity;
     }
 
+    
+    private void evictTopicCache(Integer topicId) {
+        try {
+            redisService.delete(RedisKey.managerGroupAll());
+            if (topicId != null) {
+                redisService.delete(RedisKey.managerGroupById(topicId));
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     @Override
-    public void delete(Integer id) { repo.deleteById(id); }
+    public void delete(Integer id) { evictTopicCache(id);
+        repo.deleteById(id); }
 }

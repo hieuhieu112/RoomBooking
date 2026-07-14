@@ -6,7 +6,7 @@
 //import lombok.AllArgsConstructor;
 //import com.app.backend.dtos.request.*;
 //import com.app.backend.dtos.response.*;
-//import com.app.backend.service.RoomImageService;
+//import com.app.backend.service.intf.RoomImageService;
 //
 //@RestController
 //@RequestMapping("/api/v1/roomimages")

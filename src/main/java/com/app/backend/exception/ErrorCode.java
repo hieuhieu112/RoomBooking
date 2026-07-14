@@ -66,6 +66,9 @@ public enum ErrorCode {
     // ===== HOUSE =====
     HOUSE_NOT_FOUND("ERROR.HOUSE_NOT_FOUND", "Không tìm thấy nhà", HttpStatus.NOT_FOUND),
 
+    // ===== MANAGER_GROUP =====
+    MANAGER_GROUP_NOT_FOUND("ERROR.MANAGER_GROUP_NOT_FOUND", "Không tìm thấy nhóm quản lý", HttpStatus.NOT_FOUND),
+
     // ===== DEVICE_TYPE =====
     DEVICE_TYPE_NOT_FOUND("ERROR.DEVICE_TYPE_NOT_FOUND", "Không tìm thấy loại thiết bị", HttpStatus.NOT_FOUND),
     // ===== DEVICE_CATEGORY =====

@@ -9,7 +9,8 @@ import com.app.backend.entity.Role;
 import com.app.backend.entity.User;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
-import com.app.backend.service.AuthServices;
+import com.app.backend.service.JwtService;
+import com.app.backend.service.intf.AuthServices;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.util.List;

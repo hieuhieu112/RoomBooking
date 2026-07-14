@@ -10,7 +10,7 @@
 //import com.app.backend.dtos.response.*;
 //import com.app.backend.entity.RoomImage;
 //import com.app.backend.repository.RoomImageRepository;
-//import com.app.backend.service.RoomImageService;
+//import com.app.backend.service.intf.RoomImageService;
 //
 //@Service
 //@Transactional

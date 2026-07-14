@@ -1,7 +1,6 @@
 package com.app.backend.service.impl;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import com.app.backend.entity.ManagerGroup;
 import com.app.backend.entity.Role;
@@ -16,7 +15,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 import com.app.backend.entity.User;
 import com.app.backend.repository.UserRepository;
-import com.app.backend.service.UserService;
+import com.app.backend.service.intf.UserService;
 
 @Service
 @Transactional

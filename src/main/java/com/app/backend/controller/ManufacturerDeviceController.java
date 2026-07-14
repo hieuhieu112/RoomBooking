@@ -8,7 +8,6 @@ import org.springframework.web.bind.annotation.*;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
-import com.app.backend.service.ManufacturerDeviceService;
 
 @RestController
 @RequestMapping("/api/v1/manufacturerdevices")

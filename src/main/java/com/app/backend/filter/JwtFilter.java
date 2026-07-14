@@ -2,7 +2,7 @@ package com.app.backend.filter;
 
 
 import com.app.backend.entity.User;
-import com.app.backend.service.impl.JwtService;
+import com.app.backend.service.JwtService;
 import com.app.backend.utils.Constant;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
