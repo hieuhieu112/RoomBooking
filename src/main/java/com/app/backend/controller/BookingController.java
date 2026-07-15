@@ -5,6 +5,9 @@ import java.util.List;
 import com.app.backend.service.impl.BookingServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.app.backend.utils.ValidRequestUtil;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
@@ -16,7 +19,8 @@ public class BookingController {
     private final BookingServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<DataResponse<BookingResponse>> create(@RequestBody BookingRequest request) {
+    public ResponseEntity<DataResponse<BookingResponse>> create(@Valid @RequestBody BookingRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<BookingResponse> response = DataResponse.<BookingResponse>builder()
                 .data(service.mapToResponse(service.create(request)))
                 .statusCode(StatusRes.SUCCESS)
@@ -50,7 +54,8 @@ public class BookingController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<BookingResponse>> update(@PathVariable Integer id, @RequestBody BookingRequest request) {
+    public ResponseEntity<DataResponse<BookingResponse>> update(@PathVariable Integer id, @Valid @RequestBody BookingRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<BookingResponse> response = DataResponse.<BookingResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))
                 .statusCode(StatusRes.SUCCESS)

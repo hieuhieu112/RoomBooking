@@ -5,6 +5,9 @@ import java.util.List;
 import com.app.backend.service.impl.ManufacturerDeviceServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.app.backend.utils.ValidRequestUtil;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
@@ -16,7 +19,8 @@ public class ManufacturerDeviceController {
     private final ManufacturerDeviceServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<DataResponse<ManufacturerDeviceResponse>> create(@RequestBody ManufacturerDeviceRequest request) {
+    public ResponseEntity<DataResponse<ManufacturerDeviceResponse>> create(@Valid @RequestBody ManufacturerDeviceRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<ManufacturerDeviceResponse> response = DataResponse.<ManufacturerDeviceResponse>builder()
                 .data(service.mapToResponse(service.create(request)))
                 .statusCode(StatusRes.SUCCESS)
@@ -50,7 +54,8 @@ public class ManufacturerDeviceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<ManufacturerDeviceResponse>> update(@PathVariable Integer id, @RequestBody ManufacturerDeviceRequest request) {
+    public ResponseEntity<DataResponse<ManufacturerDeviceResponse>> update(@PathVariable Integer id, @Valid @RequestBody ManufacturerDeviceRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<ManufacturerDeviceResponse> response = DataResponse.<ManufacturerDeviceResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))
                 .statusCode(StatusRes.SUCCESS)

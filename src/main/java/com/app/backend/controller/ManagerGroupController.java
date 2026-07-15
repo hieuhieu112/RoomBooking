@@ -5,6 +5,9 @@ import java.util.List;
 import com.app.backend.service.impl.ManagerGroupServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.app.backend.utils.ValidRequestUtil;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
@@ -16,7 +19,8 @@ public class ManagerGroupController {
     private final ManagerGroupServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<DataResponse<ManagerGroupResponse>> create(@RequestBody ManagerGroupRequest request) {
+    public ResponseEntity<DataResponse<ManagerGroupResponse>> create(@Valid @RequestBody ManagerGroupRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<ManagerGroupResponse> response = DataResponse.<ManagerGroupResponse>builder()
                 .data(service.mapToResponse(service.create(request)))
                 .statusCode(StatusRes.SUCCESS)
@@ -50,7 +54,8 @@ public class ManagerGroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<ManagerGroupResponse>> update(@PathVariable Integer id, @RequestBody ManagerGroupRequest request) {
+    public ResponseEntity<DataResponse<ManagerGroupResponse>> update(@PathVariable Integer id, @Valid @RequestBody ManagerGroupRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<ManagerGroupResponse> response = DataResponse.<ManagerGroupResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))
                 .statusCode(StatusRes.SUCCESS)

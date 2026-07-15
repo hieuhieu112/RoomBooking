@@ -5,6 +5,9 @@ import java.util.List;
 import com.app.backend.service.impl.DeviceServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.app.backend.utils.ValidRequestUtil;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
@@ -16,7 +19,8 @@ public class DeviceController {
     private final DeviceServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<DataResponse<DeviceResponse>> create(@RequestBody DeviceRequest request) {
+    public ResponseEntity<DataResponse<DeviceResponse>> create(@Valid @RequestBody DeviceRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<DeviceResponse> response = DataResponse.<DeviceResponse>builder()
                 .data(service.mapToResponse(service.create(request)))
                 .statusCode(StatusRes.SUCCESS)
@@ -50,7 +54,8 @@ public class DeviceController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<DeviceResponse>> update(@PathVariable Integer id, @RequestBody DeviceRequest request) {
+    public ResponseEntity<DataResponse<DeviceResponse>> update(@PathVariable Integer id, @Valid @RequestBody DeviceRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<DeviceResponse> response = DataResponse.<DeviceResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))
                 .statusCode(StatusRes.SUCCESS)

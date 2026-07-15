@@ -5,6 +5,9 @@ import java.util.List;
 import com.app.backend.service.impl.DeviceCategoryServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.app.backend.utils.ValidRequestUtil;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
@@ -16,7 +19,8 @@ public class DeviceCategoryController {
     private final DeviceCategoryServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<DataResponse<DeviceCategoryResponse>> create(@RequestBody DeviceCategoryRequest request) {
+    public ResponseEntity<DataResponse<DeviceCategoryResponse>> create(@Valid @RequestBody DeviceCategoryRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<DeviceCategoryResponse> response = DataResponse.<DeviceCategoryResponse>builder()
                 .data(service.mapToResponse(service.create(request)))
                 .statusCode(StatusRes.SUCCESS)
@@ -50,7 +54,8 @@ public class DeviceCategoryController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<DeviceCategoryResponse>> update(@PathVariable Integer id, @RequestBody DeviceCategoryRequest request) {
+    public ResponseEntity<DataResponse<DeviceCategoryResponse>> update(@PathVariable Integer id, @Valid @RequestBody DeviceCategoryRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<DeviceCategoryResponse> response = DataResponse.<DeviceCategoryResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))
                 .statusCode(StatusRes.SUCCESS)

@@ -5,6 +5,9 @@ import java.util.List;
 import com.app.backend.service.impl.RoomServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.app.backend.utils.ValidRequestUtil;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
@@ -16,7 +19,8 @@ public class RoomController {
     private final RoomServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<DataResponse<RoomResponse>> create(@RequestBody RoomRequest request) {
+    public ResponseEntity<DataResponse<RoomResponse>> create(@Valid @RequestBody RoomRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<RoomResponse> response = DataResponse.<RoomResponse>builder()
                 .data(service.mapToResponse(service.create(request)))
                 .statusCode(StatusRes.SUCCESS)
@@ -50,7 +54,8 @@ public class RoomController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<RoomResponse>> update(@PathVariable Integer id, @RequestBody RoomRequest request) {
+    public ResponseEntity<DataResponse<RoomResponse>> update(@PathVariable Integer id, @Valid @RequestBody RoomRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<RoomResponse> response = DataResponse.<RoomResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))
                 .statusCode(StatusRes.SUCCESS)

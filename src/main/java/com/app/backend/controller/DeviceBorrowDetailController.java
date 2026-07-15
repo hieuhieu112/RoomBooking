@@ -5,6 +5,9 @@ import java.util.List;
 import com.app.backend.service.impl.DeviceBorrowDetailServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
+import com.app.backend.utils.ValidRequestUtil;
 import lombok.AllArgsConstructor;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
@@ -16,7 +19,8 @@ public class DeviceBorrowDetailController {
     private final DeviceBorrowDetailServiceImpl service;
 
     @PostMapping
-    public ResponseEntity<DataResponse<DeviceBorrowDetailResponse>> create(@RequestBody DeviceBorrowDetailRequest request) {
+    public ResponseEntity<DataResponse<DeviceBorrowDetailResponse>> create(@Valid @RequestBody DeviceBorrowDetailRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<DeviceBorrowDetailResponse> response = DataResponse.<DeviceBorrowDetailResponse>builder()
                 .data(service.mapToResponse(service.create(request)))
                 .statusCode(StatusRes.SUCCESS)
@@ -50,7 +54,8 @@ public class DeviceBorrowDetailController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<DeviceBorrowDetailResponse>> update(@PathVariable Long id, @RequestBody DeviceBorrowDetailRequest request) {
+    public ResponseEntity<DataResponse<DeviceBorrowDetailResponse>> update(@PathVariable Long id, @Valid @RequestBody DeviceBorrowDetailRequest request, BindingResult result) {
+        ValidRequestUtil.validateRequest(result);
         DataResponse<DeviceBorrowDetailResponse> response = DataResponse.<DeviceBorrowDetailResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))
                 .statusCode(StatusRes.SUCCESS)
