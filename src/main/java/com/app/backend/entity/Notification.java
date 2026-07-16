@@ -22,10 +22,11 @@ import java.util.Map;
 @AllArgsConstructor
 @Builder
 public class Notification extends BaseEntity {
-
+    @Id
+    private Long id;
 
     @Column(name = "user_id", nullable = false)
-    @Id
+
     private Long userId;
 
     private String username;

@@ -26,6 +26,12 @@ public enum ErrorCode {
     CONTRACT_DEPOSIT_INVALID("ERROR.CONTRACT.INVALID_DEPOSIT", "Loại cọc không phù hợp", HttpStatus.BAD_REQUEST),
     CONTRACT_INVALID_DISCOUNT("ERROR.CONTRACT.INVALID_DISCOUNT", "Discount cannot exceed room price", HttpStatus.BAD_REQUEST),
 
+    //===================
+    FILE_UPLOAD_FAILED("ERROR.FILE_UPLOAD_FAILED", "Lưu file không thành công", HttpStatus.BAD_REQUEST),
+    FILE_NOT_EXTENSION("ERROR.FILE_NOT_EXTENSION", "File không có đuôi file", HttpStatus.BAD_REQUEST),
+    FILE_WRONG_EXTENSION("ERROR.FILE_WRONG_EXTENSION", "File không đúng định dạng", HttpStatus.BAD_REQUEST),
+    FILE_DELETE_FAILED("ERROR.FILE_DELETE_FAILED", "Xoa file không thành công", HttpStatus.BAD_REQUEST),
+    FILE_NOT_FOUND("ERROR.FILE_NOT_FOUND", "Không tìm thấy file", HttpStatus.NOT_FOUND),
 
     // ===== AUTH =====
     AUTH_UNAUTHORIZED("ERROR.AUTH.UNAUTHORIZED", "Unauthorized", HttpStatus.UNAUTHORIZED),

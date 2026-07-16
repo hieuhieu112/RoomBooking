@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<UserResponse>> update(@PathVariable Integer id, @Valid @RequestBody UserRequest request, BindingResult result) {
+    public ResponseEntity<DataResponse<UserResponse>> update(@PathVariable Integer id, @Valid @RequestBody UserUpdateRequest request, BindingResult result) {
         ValidRequestUtil.validateRequest(result);
         DataResponse<UserResponse> response = DataResponse.<UserResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))

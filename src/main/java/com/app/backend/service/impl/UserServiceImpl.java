@@ -77,13 +77,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User update(Integer id, UserRequest request) {
+    public User update(Integer id, UserUpdateRequest request) {
+
         User entity = getById(id);
         entity.setName(request.getName());
-        entity.setEmail(request.getEmail());
-        entity.setIncidentCount(request.getIncidentCount());
+        if(!entity.getEmail().equals(request.getEmail())){
+            entity.setEmail(request.getEmail());
+        }
+
+//        entity.setIncidentCount(request.getIncidentCount());
 //        entity.setPassword(request.getPass());
-        entity.setUsername(request.getUsername());
+//        entity.setUsername(request.getUsername());
         ManagerGroup managerGroup = managerGroupService.getById(request.getManagerGroupId());
         entity.setManagerGroup(managerGroup);
         entity = repo.save(entity);

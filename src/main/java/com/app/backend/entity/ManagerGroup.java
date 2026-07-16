@@ -7,7 +7,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "managergroup")
+@Table(name = "manager_group")
 @Getter
 @Setter
 @NoArgsConstructor

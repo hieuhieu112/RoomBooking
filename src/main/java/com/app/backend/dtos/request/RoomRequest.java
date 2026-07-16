@@ -15,6 +15,6 @@ public class RoomRequest {
     private Integer capacity;
     private Integer roomTypeId;
     private Integer houseId;
-    private String image;
+//    private String image;
     private Integer managerGroupId;
 }

@@ -27,7 +27,7 @@ public class Room extends BaseEntity {
     private Integer capacity;
 
     @ManyToOne
-    @JoinColumn(name = "manager_group_id", nullable = false)
+    @JoinColumn(name = "manager_group_id",nullable = true)
     private ManagerGroup managerGroup;
 
     @ManyToOne

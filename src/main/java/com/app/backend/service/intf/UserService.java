@@ -12,6 +12,6 @@ public interface UserService {
     User getByEmail(String email);
     User getByUsername(String username);
     List<User> getAll();
-    User update(Integer id, UserRequest request);
+    User update(Integer id, UserUpdateRequest request);
     void delete(Integer id);
 }

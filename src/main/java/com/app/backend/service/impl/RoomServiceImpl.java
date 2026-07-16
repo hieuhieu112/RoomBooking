@@ -1,5 +1,6 @@
 package com.app.backend.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.app.backend.entity.RoomImage;
@@ -13,6 +14,7 @@ import com.app.backend.dtos.response.*;
 import com.app.backend.entity.Room;
 import com.app.backend.repository.RoomRepository;
 import com.app.backend.service.intf.RoomService;
+import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional
@@ -21,7 +23,8 @@ public class RoomServiceImpl implements RoomService {
     private final RoomRepository repo;
     private final RoomTypeServiceImpl roomTypeService;
     private final HouseServiceImpl houseService;
-    private final ManagerGroupServiceImpl managerGroupService;
+//    private final ManagerGroupServiceImpl managerGroupService;
+    private final RoomImageServiceImpl roomImageService;
 
     public RoomResponse mapToResponse(Room entity) {
         RoomResponse resp = new RoomResponse();
@@ -34,12 +37,15 @@ public class RoomServiceImpl implements RoomService {
         resp.setImage(entity.getImages().stream().map(
                 RoomImage::getUrl
         ).toList());
-        resp.setManagerGroupId(entity.getManagerGroup().getId());
+        if(entity.getManagerGroup() != null){
+            resp.setManagerGroupId(entity.getManagerGroup().getId());
+        }
+
         return resp;
     }
 
     @Override
-    public Room create(RoomRequest request) {
+    public Room create(RoomRequest request, List<MultipartFile> images) {
         Room entity = new Room();
         entity.setName(request.getName());
         entity.setLocation(request.getLocation());
@@ -48,7 +54,15 @@ public class RoomServiceImpl implements RoomService {
         entity.setRoomType(roomTypeService.getById(request.getRoomTypeId()));
         entity.setHouse(houseService.getById(request.getHouseId()));
         //entity.setImage(new RoomImage() request.getImage());
-        entity.setManagerGroup(managerGroupService.getById(request.getManagerGroupId()));
+//        entity.setManagerGroup(managerGroupService.getById(request.getManagerGroupId()));
+
+        List<RoomImage> roomImages = new ArrayList<>();
+        for(int i = 0; i< images.size(); i++){
+            roomImages.add(roomImageService.generateImage(images.get(i), entity, i));
+        }
+
+        entity.setImages(roomImages);
+
         entity = repo.save(entity);
         return entity;
     }
@@ -72,7 +86,7 @@ public class RoomServiceImpl implements RoomService {
         entity.setRoomType(roomTypeService.getById(request.getRoomTypeId()));
         entity.setHouse(houseService.getById(request.getHouseId()));
         //entity.setImage(new RoomImage() request.getImage());
-        entity.setManagerGroup(managerGroupService.getById(request.getManagerGroupId()));
+//        entity.setManagerGroup(managerGroupService.getById(request.getManagerGroupId()));
         entity = repo.save(entity);
         return (entity);
     }

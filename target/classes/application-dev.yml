@@ -22,7 +22,7 @@ spring:
       ddl-auto: update
     show-sql: true
 file:
-  upload-dir: D:/upload-avatar/
+  upload-dir: D:/upload-arb/
 logging:
   level:
     org.springframework.web: DEBUG

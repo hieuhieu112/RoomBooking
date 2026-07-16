@@ -1,7 +1,9 @@
 package com.app.backend.service.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.app.backend.entity.Room;
 import lombok.RequiredArgsConstructor;
 import com.app.backend.constant.RedisKey;
 import com.app.backend.service.CacheService;
@@ -24,12 +26,16 @@ import com.app.backend.service.intf.ManagerGroupService;
 public class ManagerGroupServiceImpl implements ManagerGroupService {
     private final ManagerGroupRepository repo;
     private final CacheService cacheService;
+//    private final UserServiceImpl userService;
+    private final RoomServiceImpl roomService;
+
 
     private static final Duration MANAGERGROUP_CACHE_TTL = Duration.ofMinutes(15);
     private final RedisService redisService;
 
     public ManagerGroupResponse mapToResponse(ManagerGroup entity) {
         ManagerGroupResponse resp = new ManagerGroupResponse();
+
         resp.setId(entity.getId());
         resp.setName(entity.getName());
         return resp;
@@ -39,6 +45,11 @@ public class ManagerGroupServiceImpl implements ManagerGroupService {
     public ManagerGroup create(ManagerGroupRequest request) {
         ManagerGroup entity = new ManagerGroup();
         entity.setName(request.getName());
+
+
+        entity.setRooms(request.getListRoom().stream().map(roomService::getById).toList());
+//        entity.setUsers(request.getListUser().stream().map(userService::getById).toList());
+
         entity = repo.save(entity);
         evictTopicCache(null);
         return entity;
@@ -67,8 +78,11 @@ public class ManagerGroupServiceImpl implements ManagerGroupService {
 
     @Override
     public ManagerGroup update(Integer id, ManagerGroupRequest request) {
-        ManagerGroup entity = repo.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
+        ManagerGroup entity = repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.ROLE_NOT_FOUND));
         entity.setName(request.getName());
+        entity.setRooms(request.getListRoom().stream().map(roomService::getById).toList());
+//        entity.setUsers(request.getListUser().stream().map(userService::getById).toList());
+
         entity = repo.save(entity);
         evictTopicCache(null);
         return entity;

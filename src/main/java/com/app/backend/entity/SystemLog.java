@@ -9,7 +9,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
-@Table(name = "systemlog")
+@Table(name = "system_log")
 @Getter
 @Setter
 @NoArgsConstructor

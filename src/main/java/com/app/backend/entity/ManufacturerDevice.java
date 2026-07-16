@@ -7,7 +7,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name = "manufacturerdevice")
+@Table(name = "manufacturer_device")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,5 +22,5 @@ public class ManufacturerDevice {
 
     @OneToMany(mappedBy = "manufacturerDevice",cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<DeviceModel> deviceModels ;
+    private List<DeviceModel> deviceModels;
 }
