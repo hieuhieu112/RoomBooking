@@ -1,11 +1,14 @@
 package com.app.backend.service.impl;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import com.app.backend.entity.Room;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -32,7 +35,7 @@ public class RoomImageServiceImpl implements RoomImageService {
         entity.setRoom(room);
         String url = fileStorageService.uploadFile(image);
         entity.setUrl(url);
-        entity.setStoredName(url.substring(url.lastIndexOf("/")));
+        entity.setStoredName(url.substring(url.lastIndexOf("/") + 1));
         entity.setOriginalName(image.getOriginalFilename());
         entity.setDisplayOrder(numberDisplay);
         return entity;
@@ -42,8 +45,10 @@ public class RoomImageServiceImpl implements RoomImageService {
     public RoomImageResponse mapToResponse(RoomImage entity) {
         RoomImageResponse resp = new RoomImageResponse();
         resp.setId(entity.getId());
-        resp.setUrl(entity.getUrl());
+        resp.setUrl("/api/v1/roomimages/" + entity.getId());
         resp.setRoomId(entity.getRoom().getId());
+        resp.setDisplayOrder(entity.getDisplayOrder());
+        resp.setOriginalName(entity.getOriginalName());
         return resp;
     }
 
@@ -64,6 +69,25 @@ public class RoomImageServiceImpl implements RoomImageService {
     @Override
     public List<RoomImage> getByRoomId(Integer id) {
         return repo.findByRoomId(id);
+    }
+
+    @Override
+    public void getImageByID(Integer id, HttpServletResponse response) {
+        RoomImage roomImage = getById(id);
+        String encoded = URLEncoder.encode(roomImage.getOriginalName(), StandardCharsets.UTF_8)
+                .replace("+", "%20");
+
+        response.setHeader(
+                "Content-Disposition",
+                "inline; filename=\"" + encoded  + "\""
+        );
+
+        fileStorageService.downloadFile(roomImage.getStoredName(), response);
+    }
+
+    @Override
+    public void deleteByRoomId(Integer id) {
+        repo.deleteByRoomId(id);
     }
 
     @Override

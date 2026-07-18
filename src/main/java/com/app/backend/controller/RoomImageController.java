@@ -1,19 +1,22 @@
-//package com.app.backend.controller;
-//
-//import java.util.List;
-//import org.springframework.http.ResponseEntity;
-//import org.springframework.web.bind.annotation.*;
-//import lombok.AllArgsConstructor;
-//import com.app.backend.dtos.request.*;
-//import com.app.backend.dtos.response.*;
-//import com.app.backend.service.intf.RoomImageService;
-//
-//@RestController
-//@RequestMapping("/api/v1/roomimages")
-//@AllArgsConstructor
-//public class RoomImageController {
-//    private final RoomImageService service;
-//
+package com.app.backend.controller;
+
+import java.util.List;
+
+import com.app.backend.service.impl.RoomImageServiceImpl;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import lombok.AllArgsConstructor;
+import com.app.backend.dtos.request.*;
+import com.app.backend.dtos.response.*;
+import com.app.backend.service.intf.RoomImageService;
+
+@RestController
+@RequestMapping("/api/v1/roomimages")
+@AllArgsConstructor
+public class RoomImageController {
+    private final RoomImageServiceImpl service;
+
 //    @PostMapping
 //    public ResponseEntity<DataResponse<RoomImageResponse>> create(@RequestBody RoomImageRequest request) {
 //        DataResponse<RoomImageResponse> response = DataResponse.<RoomImageResponse>builder()
@@ -23,9 +26,16 @@
 //                .build();
 //        return ResponseEntity.ok(response);
 //    }
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<DataResponse<RoomImageResponse>> getById(@PathVariable Integer id) {
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Void> getById(@PathVariable Integer id,
+                                                      HttpServletResponse response) {
+        service.getImageByID(id,response);
+        return null;
+    }
+
+//    @GetMapping("/url")
+//    public ResponseEntity<DataResponse<RoomImageResponse>> getByUrl(@PathVariable Integer id) {
 //        var res = service.getById(id);
 //        if (res != null) {
 //            DataResponse<RoomImageResponse> response = DataResponse.<RoomImageResponse>builder()
@@ -37,7 +47,7 @@
 //        }
 //        return ResponseEntity.notFound().build();
 //    }
-//
+
 //    @GetMapping
 //    public ResponseEntity<DataResponse<List<RoomImageResponse>>> getAll() {
 //        DataResponse<List<RoomImageResponse>> response = DataResponse.<List<RoomImageResponse>>builder()
@@ -57,14 +67,14 @@
 //                .build();
 //        return ResponseEntity.ok(response);
 //    }
-//
-//    @DeleteMapping("/{id}")
-//    public ResponseEntity<DataResponse<Void>> delete(@PathVariable Integer id) {
-//        service.delete(id);
-//        DataResponse<Void> response = DataResponse.<Void>builder()
-//                .statusCode(StatusRes.SUCCESS)
-//                .message("SUCCESS")
-//                .build();
-//        return ResponseEntity.ok(response);
-//    }
-//}
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DataResponse<Void>> delete(@PathVariable Integer id) {
+        service.delete(id);
+        DataResponse<Void> response = DataResponse.<Void>builder()
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+}

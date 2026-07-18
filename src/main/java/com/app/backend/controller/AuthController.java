@@ -11,10 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 
 @RestController
@@ -38,5 +35,32 @@ public class AuthController {
                 .message(StatusRes.SUCCESS)
                 .build();
         return ResponseEntity.ok(responseAuth) ;
+    }
+
+    @PostMapping(value = "/logout")
+    public ResponseEntity<DataResponse<String>> logout(HttpServletResponse response){
+        authServices.logout(response);
+
+        DataResponse<String> resp = DataResponse.<String>builder()
+                .statusCode("200")
+                .message("Bạn đã đăng xuất")
+                .data(null)
+                .build();
+
+        return ResponseEntity.ok(resp);
+    }
+
+    @PostMapping(value = "/refresh")
+    public ResponseEntity<DataResponse<AuthResponse>> refreshAT(
+            @CookieValue(name = "rf-tk", required = false) String refreshToken
+    ){
+        AuthResponse authResponse = authServices.refresh(refreshToken);
+
+        return ResponseEntity.ok(DataResponse.<AuthResponse>builder()
+                        .data(authResponse)
+                        .statusCode("200")
+                        .message(StatusRes.SUCCESS)
+                .build()
+        );
     }
 }

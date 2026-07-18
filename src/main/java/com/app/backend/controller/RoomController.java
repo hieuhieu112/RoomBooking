@@ -2,6 +2,7 @@ package com.app.backend.controller;
 
 import java.util.List;
 
+import com.app.backend.entity.Room;
 import com.app.backend.service.impl.RoomServiceImpl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -37,16 +38,13 @@ public class RoomController {
 
     @GetMapping("/{id}")
     public ResponseEntity<DataResponse<RoomResponse>> getById(@PathVariable Integer id) {
-        var res = service.getById(id);
-        if (res != null) {
-            DataResponse<RoomResponse> response = DataResponse.<RoomResponse>builder()
-                    .data(service.mapToResponse(res))
-                    .statusCode(StatusRes.SUCCESS)
-                    .message("SUCCESS")
-                    .build();
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.notFound().build();
+
+        DataResponse<RoomResponse> response = DataResponse.<RoomResponse>builder()
+                .data(service.mapToResponse(service.getById(id)))
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

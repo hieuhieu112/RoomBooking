@@ -4,7 +4,7 @@ app:
   jwt:
     accesssecret: bmd1b2kgZGFuIGJhIGNvIGNheSBjYSBsZW0gc2ljdWxh
     refreshsecret: bmd1b2kgZGFuIG9uZyBjbyBjb24gY29uZyBraG9uZyBuZ3U=
-    access-token-expire-seconds: 10000000
+    access-token-expire-seconds: 60
     refresh-token-expire-seconds: 86400
 
   cookie:

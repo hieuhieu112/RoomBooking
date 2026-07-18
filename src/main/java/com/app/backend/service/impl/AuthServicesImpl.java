@@ -57,7 +57,7 @@ public class AuthServicesImpl implements AuthServices {
             ResponseCookie cookie = ResponseCookie.from("rf-tk", refreshToken)
                     .httpOnly(true)
                     .secure(appProperties.getCookie().isSecure())
-                    .path("/api/v1/authen/login")
+                    .path("/api/v1/authen/refresh")
                     .maxAge(appProperties.getJwt().getRefreshTokenExpireSeconds())
                     .sameSite(appProperties.getCookie().getSameSite())
                     .build();

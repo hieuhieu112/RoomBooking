@@ -15,6 +15,6 @@ public class RoomResponse {
     private Integer capacity;
     private Integer roomTypeId;
     private Integer houseId;
-    private List<String> image;
+    private List<RoomImageResponse> image;
     private Integer managerGroupId;
 }

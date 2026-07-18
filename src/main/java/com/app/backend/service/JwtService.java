@@ -41,7 +41,7 @@ public class JwtService {
                 ).toList())
                 .claim("type", type)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expireSession))
+                .expiration(new Date(System.currentTimeMillis() + expireSession * 1000))
                 .compact();
     }
 

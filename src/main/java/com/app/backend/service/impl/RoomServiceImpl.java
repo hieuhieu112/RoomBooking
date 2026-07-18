@@ -35,7 +35,7 @@ public class RoomServiceImpl implements RoomService {
         resp.setRoomTypeId(entity.getRoomType().getId());
         resp.setHouseId(entity.getHouse().getId());
         resp.setImage(entity.getImages().stream().map(
-                RoomImage::getUrl
+                roomImageService::mapToResponse
         ).toList());
         if(entity.getManagerGroup() != null){
             resp.setManagerGroupId(entity.getManagerGroup().getId());
@@ -92,5 +92,8 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public void delete(Integer id) { repo.deleteById(id); }
+    public void delete(Integer id) {
+        roomImageService.deleteByRoomId(id);
+        repo.deleteById(id);
+    }
 }

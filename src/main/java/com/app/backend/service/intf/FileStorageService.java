@@ -6,7 +6,7 @@ import org.springframework.web.multipart.MultipartFile;
 public interface FileStorageService {
     String uploadFile(MultipartFile file);
 
-    void downloadFileDocument(String url, HttpServletResponse response);
+    void downloadFile(String url, HttpServletResponse response);
 
     void delete(String fileUrl);
 

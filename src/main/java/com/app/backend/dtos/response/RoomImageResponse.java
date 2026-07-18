@@ -9,5 +9,7 @@ import lombok.*;
 public class RoomImageResponse {
     private Integer id;
     private String url;
+    private Integer displayOrder;
     private Integer roomId;
+    private String originalName;
 }
