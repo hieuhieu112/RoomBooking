@@ -6,10 +6,10 @@ import java.util.Set;
 public class AuthContext {
 
     private final String username;
-    private final Long userId;
+    private final Integer userId;
     private final Set<String> roles;
 
-    public AuthContext(String username, Long userId, Set<String> roles) {
+    public AuthContext(String username, Integer userId, Set<String> roles) {
         this.username = username;
         this.roles = roles;
         this.userId = userId;
@@ -18,7 +18,7 @@ public class AuthContext {
     public String getUsername() {
         return username;
     }
-    public Long getUserId() {
+    public Integer getUserId() {
         return userId;
     }
 

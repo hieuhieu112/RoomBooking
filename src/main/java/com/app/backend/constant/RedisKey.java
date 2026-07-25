@@ -11,7 +11,12 @@ public class RedisKey {
     private static final String DEVICE_MODEL_PREFIX = "device_model:";
     private static final String ROLE_PREFIX = "role:";
     private static final String USER_PREFIX = "user:";
+    private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
 
+
+    public static String refreshTokenTypeById(Integer id) {
+        return REFRESH_TOKEN_PREFIX + "id:" + id;
+    }
 
     public static String roomTypeAll() {
         return ROOM_TYPE_PREFIX + "all";

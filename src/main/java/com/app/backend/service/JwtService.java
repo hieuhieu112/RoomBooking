@@ -1,6 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.config.AppProperties;
+import com.app.backend.constant.RedisKey;
 import com.app.backend.entity.Role;
 import com.app.backend.entity.User;
 import com.app.backend.exception.CommonException;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Duration;
 import java.util.Date;
 import java.util.List;
 
@@ -51,6 +53,7 @@ public class JwtService {
 
     public String generateRefreshToken(User user){
         return buildToken(user, appProperties.getJwt().getRefreshsecret(), appProperties.getJwt().getRefreshTokenExpireSeconds(), Constant.TYPE_REFRESH_TOKEN);
+
     }
 
     public Claims parseClaim(String token, String type){

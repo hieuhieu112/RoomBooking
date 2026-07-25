@@ -26,7 +26,6 @@ public class DeviceCategoryServiceImpl implements DeviceCategoryService {
     private final CacheService cacheService;
 
     private static final Duration DEVICECATEGORY_CACHE_TTL = Duration.ofMinutes(15);
-    private final RedisService redisService;
 
     public DeviceCategoryResponse mapToResponse(DeviceCategory entity) {
         DeviceCategoryResponse resp = new DeviceCategoryResponse();
@@ -77,9 +76,9 @@ public class DeviceCategoryServiceImpl implements DeviceCategoryService {
     
     private void evictTopicCache(Integer topicId) {
         try {
-            redisService.delete(RedisKey.deviceCategoryAll());
+            cacheService.evict(RedisKey.deviceCategoryAll());
             if (topicId != null) {
-                redisService.delete(RedisKey.deviceCategoryById(topicId));
+                cacheService.evict(RedisKey.deviceCategoryById(topicId));
             }
         } catch (Exception ignored) {
         }

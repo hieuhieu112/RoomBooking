@@ -12,5 +12,5 @@ public interface AuthServices {
     void changePassword(String username, String newPassword);
     void forgotPassword(String username);
     AuthResponse logout(HttpServletResponse response);
-    AuthResponse refresh(String refreshToken);
+    AuthResponse refresh(String refreshToken, HttpServletResponse response);
 }

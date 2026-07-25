@@ -25,7 +25,6 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     private final CacheService cacheService;
 
     private static final Duration DEVICEMODEL_CACHE_TTL = Duration.ofMinutes(15);
-    private final RedisService redisService;
     private final DeviceTypeServiceImpl deviceTypeService;
     private final ManufacturerDeviceServiceImpl manufacturerDeviceService;
 
@@ -88,9 +87,9 @@ public class DeviceModelServiceImpl implements DeviceModelService {
     
     private void evictTopicCache(Integer topicId) {
         try {
-            redisService.delete(RedisKey.deviceModelAll());
+            cacheService.evict(RedisKey.deviceModelAll());
             if (topicId != null) {
-                redisService.delete(RedisKey.deviceModelById(topicId));
+                cacheService.evict(RedisKey.deviceModelById(topicId));
             }
         } catch (Exception ignored) {
         }

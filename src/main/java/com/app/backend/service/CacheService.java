@@ -42,7 +42,7 @@ public class CacheService {
         return value;
     }
 
-    private <T> T getCache(
+    public <T> T getCache(
             String key,
             Class<T> type
     ) {
@@ -57,7 +57,7 @@ public class CacheService {
         }
     }
 
-    private void setCache(
+    public void setCache(
             String key,
             Object value,
             Duration ttl
@@ -69,6 +69,14 @@ public class CacheService {
                     value,
                     ttl
             );
+        } catch (Exception ignored) {
+        }
+    }
+
+    public void evict(String key) {
+
+        try {
+            redisService.delete(key);
         } catch (Exception ignored) {
         }
     }

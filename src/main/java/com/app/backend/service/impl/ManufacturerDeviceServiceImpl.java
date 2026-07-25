@@ -7,7 +7,6 @@ import com.app.backend.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import com.app.backend.constant.RedisKey;
 import com.app.backend.service.CacheService;
-import com.app.backend.service.RedisService;
 import java.time.Duration;
 import java.util.Arrays;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ public class ManufacturerDeviceServiceImpl implements ManufacturerDeviceService 
     private final CacheService cacheService;
 
     private static final Duration MANUFACTURERDEVICE_CACHE_TTL = Duration.ofMinutes(15);
-    private final RedisService redisService;
 
     public ManufacturerDeviceResponse mapToResponse(ManufacturerDevice entity) {
         ManufacturerDeviceResponse resp = new ManufacturerDeviceResponse();
@@ -77,9 +75,9 @@ public class ManufacturerDeviceServiceImpl implements ManufacturerDeviceService 
     
     private void evictTopicCache(Integer topicId) {
         try {
-            redisService.delete(RedisKey.manufacturerAll());
+            cacheService.evict(RedisKey.manufacturerAll());
             if (topicId != null) {
-                redisService.delete(RedisKey.manufacturerById(topicId));
+                cacheService.evict(RedisKey.manufacturerById(topicId));
             }
         } catch (Exception ignored) {
         }

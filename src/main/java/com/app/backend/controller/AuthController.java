@@ -38,7 +38,9 @@ public class AuthController {
     }
 
     @PostMapping(value = "/logout")
-    public ResponseEntity<DataResponse<String>> logout(HttpServletResponse response){
+    public ResponseEntity<DataResponse<String>> logout(
+            HttpServletResponse response
+    ){
         authServices.logout(response);
 
         DataResponse<String> resp = DataResponse.<String>builder()
@@ -52,9 +54,10 @@ public class AuthController {
 
     @PostMapping(value = "/refresh")
     public ResponseEntity<DataResponse<AuthResponse>> refreshAT(
-            @CookieValue(name = "rf-tk", required = false) String refreshToken
+            @CookieValue(name = "rf-tk", required = false) String refreshToken,
+            HttpServletResponse response
     ){
-        AuthResponse authResponse = authServices.refresh(refreshToken);
+        AuthResponse authResponse = authServices.refresh(refreshToken,response);
 
         return ResponseEntity.ok(DataResponse.<AuthResponse>builder()
                         .data(authResponse)

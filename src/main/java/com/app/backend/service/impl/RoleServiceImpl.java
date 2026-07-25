@@ -8,7 +8,6 @@ import com.app.backend.constant.RedisKey;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
 import com.app.backend.service.CacheService;
-import com.app.backend.service.RedisService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,6 @@ import com.app.backend.service.intf.RoleService;
 public class RoleServiceImpl implements RoleService {
     private final RoleRepository repo;
     private final CacheService cacheService;
-    private final RedisService redisService;
 
     private static final Duration ROLE_CACHE_TTL = Duration.ofMinutes(15);
 
@@ -81,10 +79,10 @@ public class RoleServiceImpl implements RoleService {
     private void evictTopicCache(Integer topicId) {
 
         try {
-            redisService.delete(RedisKey.roleAll());
+            cacheService.evict(RedisKey.roleAll());
 
             if (topicId != null) {
-                redisService.delete(RedisKey.roleById(topicId));
+                cacheService.evict(RedisKey.roleById(topicId));
             }
         } catch (Exception ignored) {
         }

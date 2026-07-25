@@ -3,10 +3,18 @@ package com.app.backend.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.app.backend.entity.enumm.NotificationType;
+import com.app.backend.redis.NotificationPublisher;
+import com.app.backend.redis.RedisConfig;
+import com.app.backend.redis.NotificationEvent;
 import com.app.backend.entity.RoomImage;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
+import com.app.backend.service.AuthContextService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.app.backend.dtos.request.*;
@@ -25,6 +33,9 @@ public class RoomServiceImpl implements RoomService {
     private final HouseServiceImpl houseService;
 //    private final ManagerGroupServiceImpl managerGroupService;
     private final RoomImageServiceImpl roomImageService;
+
+    private final NotificationPublisher notificationPublisher;
+
 
     public RoomResponse mapToResponse(Room entity) {
         RoomResponse resp = new RoomResponse();
@@ -64,11 +75,19 @@ public class RoomServiceImpl implements RoomService {
         entity.setImages(roomImages);
 
         entity = repo.save(entity);
+
         return entity;
     }
 
     @Override
     public Room getById(Integer id) {
+        notificationPublisher.sendMessage(NotificationEvent.builder()
+                .userId(AuthContextService.getContext().getUserId())
+                .type(NotificationType.CREATE_BOOKING)
+                .title("Get ROOM ID")
+                .username(AuthContextService.getContext().getUsername())
+                .content("get Room thành công")
+                .build());
         return repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.ROOM_NOT_FOUND));
     }
 

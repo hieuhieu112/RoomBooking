@@ -31,7 +31,6 @@ public class ManagerGroupServiceImpl implements ManagerGroupService {
 
 
     private static final Duration MANAGERGROUP_CACHE_TTL = Duration.ofMinutes(15);
-    private final RedisService redisService;
 
     public ManagerGroupResponse mapToResponse(ManagerGroup entity) {
         ManagerGroupResponse resp = new ManagerGroupResponse();
@@ -91,9 +90,9 @@ public class ManagerGroupServiceImpl implements ManagerGroupService {
     
     private void evictTopicCache(Integer topicId) {
         try {
-            redisService.delete(RedisKey.managerGroupAll());
+            cacheService.evict(RedisKey.managerGroupAll());
             if (topicId != null) {
-                redisService.delete(RedisKey.managerGroupById(topicId));
+                cacheService.evict(RedisKey.managerGroupById(topicId));
             }
         } catch (Exception ignored) {
         }

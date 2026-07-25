@@ -7,7 +7,6 @@ import com.app.backend.exception.ErrorCode;
 import lombok.AllArgsConstructor;
 import com.app.backend.constant.RedisKey;
 import com.app.backend.service.CacheService;
-import com.app.backend.service.RedisService;
 import java.time.Duration;
 import java.util.Arrays;
 import org.springframework.stereotype.Service;
@@ -26,7 +25,6 @@ public class RoomTypeServiceImpl implements RoomTypeService {
     private final CacheService cacheService;
 
     private static final Duration ROOMTYPE_CACHE_TTL = Duration.ofMinutes(15);
-    private final RedisService redisService;
 
     public RoomTypeResponse mapToResponse(RoomType entity) {
         RoomTypeResponse resp = new RoomTypeResponse();
@@ -77,9 +75,9 @@ public class RoomTypeServiceImpl implements RoomTypeService {
     
     private void evictTopicCache(Integer topicId) {
         try {
-            redisService.delete(RedisKey.roomTypeAll());
+            cacheService.evict(RedisKey.roomTypeAll());
             if (topicId != null) {
-                redisService.delete(RedisKey.roomTypeById(topicId));
+                cacheService.evict(RedisKey.roomTypeById(topicId));
             }
         } catch (Exception ignored) {
         }

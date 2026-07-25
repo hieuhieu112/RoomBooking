@@ -41,6 +41,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User create(UserRequest request) {
+
+        if(repo.existsByEmail(request.getEmail())){
+            throw  new CommonException(ErrorCode.USER_EMAIL_EXISTS);
+        }
+
+        if (repo.existsByUsername(request.getUsername())){
+            throw new CommonException(ErrorCode.USER_USERNAME_EXISTS);
+        }
+
         User entity = new User();
         entity.setName(request.getName());
         entity.setEmail(request.getEmail());

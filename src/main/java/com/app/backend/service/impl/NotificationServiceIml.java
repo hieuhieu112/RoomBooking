@@ -1,5 +1,7 @@
 package com.app.backend.service.impl;
 
+import com.app.backend.entity.enumm.NotificationType;
+import com.app.backend.redis.NotificationEvent;
 import com.app.backend.entity.Notification;
 import com.app.backend.repository.NotificationRepository;
 import com.app.backend.service.intf.NotificationService;
@@ -20,7 +22,7 @@ public class NotificationServiceIml implements NotificationService {
 
     @Override
     @Transactional
-    public Notification create(Long userId, String username, String type, String title, String content, Map<String, Object> metadata) {
+    public Notification create(Integer userId, String username, NotificationType type, String title, String content, Map<String, Object> metadata) {
         Notification n = Notification.builder()
                 .userId(userId)
                 .username(username)
@@ -30,6 +32,23 @@ public class NotificationServiceIml implements NotificationService {
                 .metadata(metadata)
                 .isRead(false)
                 .build();
+
+        return repository.save(n);
+    }
+
+    @Override
+    public Notification createFromEvent(NotificationEvent event) {
+        Notification n = Notification.builder()
+                .userId(event.getUserId())
+                .username(event.getUsername())
+                .type(event.getType())
+                .title(event.getTitle())
+                .content(event.getContent())
+                .metadata(event.getMetadata())
+                .isRead(false)
+                .build();
+        n.setCreatedBy(event.getUserId());
+        n.setModifyBy(event.getUserId());
 
         return repository.save(n);
     }

@@ -26,7 +26,6 @@ public class DeviceTypeServiceImpl implements DeviceTypeService {
     private final CacheService cacheService;
 
     private static final Duration DEVICETYPE_CACHE_TTL = Duration.ofMinutes(15);
-    private final RedisService redisService;
 
 
     public DeviceTypeResponse mapToResponse(DeviceType entity) {
@@ -78,9 +77,9 @@ public class DeviceTypeServiceImpl implements DeviceTypeService {
     
     private void evictTopicCache(Integer topicId) {
         try {
-            redisService.delete(RedisKey.deviceTypeAll());
+            cacheService.evict(RedisKey.deviceTypeAll());
             if (topicId != null) {
-                redisService.delete(RedisKey.deviceTypeById(topicId));
+                cacheService.evict(RedisKey.deviceTypeById(topicId));
             }
         } catch (Exception ignored) {
         }

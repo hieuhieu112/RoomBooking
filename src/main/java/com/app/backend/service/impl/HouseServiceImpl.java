@@ -26,7 +26,6 @@ public class HouseServiceImpl implements HouseService {
     private final CacheService cacheService;
 
     private static final Duration HOUSE_CACHE_TTL = Duration.ofMinutes(15);
-    private final RedisService redisService;
 
     public HouseResponse mapToResponse(House entity) {
         HouseResponse resp = new HouseResponse();
@@ -77,9 +76,9 @@ public class HouseServiceImpl implements HouseService {
     
     private void evictTopicCache(Integer topicId) {
         try {
-            redisService.delete(RedisKey.houseAll());
+            cacheService.evict(RedisKey.houseAll());
             if (topicId != null) {
-                redisService.delete(RedisKey.houseById(topicId));
+                cacheService.evict(RedisKey.houseById(topicId));
             }
         } catch (Exception ignored) {
         }
