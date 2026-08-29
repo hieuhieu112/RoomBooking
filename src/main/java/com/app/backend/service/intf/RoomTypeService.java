@@ -3,6 +3,7 @@ package com.app.backend.service.intf;
 import java.util.List;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
+import com.app.backend.entity.House;
 import com.app.backend.entity.RoomType;
 
 public interface RoomTypeService {
@@ -10,6 +11,7 @@ public interface RoomTypeService {
     RoomType create(RoomTypeRequest request);
     RoomType getById(Integer id);
     List<RoomType> getAll();
+    List<RoomType> getAllByFilter(String search);
     RoomType update(Integer id, RoomTypeRequest request);
     void delete(Integer id);
 }

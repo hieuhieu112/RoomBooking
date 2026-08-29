@@ -1,7 +1,9 @@
 package com.app.backend.entity.enumm;
 
 public enum BookingStatus {
-    PENDING,     APPROVED,
+    CREATED,
+    PENDING,
+    APPROVED,
     REJECTED,
     CANCELED,
     BOOKED,

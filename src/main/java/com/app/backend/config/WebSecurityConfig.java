@@ -1,6 +1,7 @@
 package com.app.backend.config;
 
 
+import com.app.backend.constant.SecurityConstant;
 import com.app.backend.filter.JwtFilter;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -28,11 +29,11 @@ public class WebSecurityConfig {
                 )
                 .authorizeHttpRequests(requests -> {
                     requests
-                            .requestMatchers(HttpMethod.POST,
-                                    "/api/v1/authen/login","/api/v1/authen/refresh","/api/v1/authen/logout")
+                            .requestMatchers(HttpMethod.POST, SecurityConstant.PUBLIC_ENDPOINTS)
                             .permitAll()
                             .requestMatchers("/files/**").permitAll()
                             .requestMatchers(
+                                    "/api/v1/roomimages/**",
                                     "/",
                                     "/firebase-messaging-sw.js",
                                     "/index.html",

@@ -29,6 +29,16 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
+//    @PostMapping("/active")
+//    public ResponseEntity<DataResponse<UserResponse>> active() {
+//        DataResponse<UserResponse> response = DataResponse.<UserResponse>builder()
+//                .data(service.mapToResponse(service.create(request)))
+//                .statusCode(StatusRes.SUCCESS)
+//                .message("SUCCESS")
+//                .build();
+//        return ResponseEntity.ok(response);
+//    }
+
     @GetMapping("/{id}")
     public ResponseEntity<DataResponse<UserResponse>> getById(@PathVariable Integer id) {
         var res = service.getById(id);

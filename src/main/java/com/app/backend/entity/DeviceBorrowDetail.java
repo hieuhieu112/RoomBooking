@@ -25,6 +25,5 @@ public class DeviceBorrowDetail {
     @JoinColumn(name = "device_id",nullable = false)
     private Device device;
 
-
-    private  String note;
+    private Integer quantity;
 }

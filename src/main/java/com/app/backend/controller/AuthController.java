@@ -1,10 +1,14 @@
 package com.app.backend.controller;
 
 import com.app.backend.dtos.request.LoginRequest;
+import com.app.backend.dtos.request.RegisterRequest;
+import com.app.backend.dtos.request.UserRequest;
 import com.app.backend.dtos.response.AuthResponse;
 import com.app.backend.dtos.response.DataResponse;
 import com.app.backend.dtos.response.StatusRes;
+import com.app.backend.dtos.response.UserResponse;
 import com.app.backend.service.impl.AuthServicesImpl;
+import com.app.backend.service.impl.UserServiceImpl;
 import com.app.backend.utils.ValidRequestUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -18,6 +22,7 @@ import org.springframework.validation.BindingResult;
 @RequestMapping("/api/v1/authen")
 @RequiredArgsConstructor
 public class AuthController {
+    private final UserServiceImpl userService;
     private final AuthServicesImpl authServices;
 
     @PostMapping("/login")
@@ -65,5 +70,33 @@ public class AuthController {
                         .message(StatusRes.SUCCESS)
                 .build()
         );
+    }
+
+
+    @PostMapping(value = "/register")
+    public ResponseEntity<DataResponse<UserResponse>> register(
+            @Valid @RequestBody UserRequest request, BindingResult result
+    ){
+        ValidRequestUtil.validateRequest(result);
+        DataResponse<UserResponse> response = DataResponse.<UserResponse>builder()
+                .data(userService.mapToResponse(authServices.register(request)))
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/active")
+    public ResponseEntity<DataResponse<Void>> active(
+            @Valid @RequestBody RegisterRequest request, BindingResult result
+    ){
+        ValidRequestUtil.validateRequest(result);
+        authServices.activeAccount(request);
+        DataResponse<Void> response = DataResponse.<Void>builder()
+                .data(null)
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
     }
 }

@@ -3,6 +3,7 @@ package com.app.backend.service.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.app.backend.entity.ManagerGroup;
 import com.app.backend.entity.enumm.NotificationType;
 import com.app.backend.redis.NotificationPublisher;
 import com.app.backend.redis.RedisConfig;
@@ -58,6 +59,9 @@ public class RoomServiceImpl implements RoomService {
     @Override
     public Room create(RoomRequest request, List<MultipartFile> images) {
         Room entity = new Room();
+        if(repo.existsByName(request.getName())){
+            throw new CommonException(ErrorCode.ROOM_NOT_FOUND);
+        }
         entity.setName(request.getName());
         entity.setLocation(request.getLocation());
         entity.setCapacity(request.getCapacity());
@@ -81,13 +85,6 @@ public class RoomServiceImpl implements RoomService {
 
     @Override
     public Room getById(Integer id) {
-        notificationPublisher.sendMessage(NotificationEvent.builder()
-                .userId(AuthContextService.getContext().getUserId())
-                .type(NotificationType.CREATE_BOOKING)
-                .title("Get ROOM ID")
-                .username(AuthContextService.getContext().getUsername())
-                .content("get Room thành công")
-                .build());
         return repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.ROOM_NOT_FOUND));
     }
 
@@ -97,7 +94,12 @@ public class RoomServiceImpl implements RoomService {
     }
 
     @Override
-    public Room update(Integer id, RoomRequest request) {
+    public List<Room> getAllByFilter(String search, Integer houseId,Integer roomTypeId) {
+        return repo.getAllByFilter(search, houseId, roomTypeId);
+    }
+
+    @Override
+    public Room update(Integer id, RoomRequest request, List<MultipartFile> images) {
         Room entity = getById(id);
         entity.setName(request.getName());
         entity.setLocation(request.getLocation());
@@ -106,6 +108,12 @@ public class RoomServiceImpl implements RoomService {
         entity.setHouse(houseService.getById(request.getHouseId()));
         //entity.setImage(new RoomImage() request.getImage());
 //        entity.setManagerGroup(managerGroupService.getById(request.getManagerGroupId()));
+        List<RoomImage> roomImages = roomImageService.getByRoomId(id);
+        for(int i = 0; i< images.size(); i++){
+            roomImages.add(roomImageService.generateImage(images.get(i), entity, i));
+        }
+
+        entity.setImages(roomImages);
         entity = repo.save(entity);
         return (entity);
     }
@@ -114,5 +122,11 @@ public class RoomServiceImpl implements RoomService {
     public void delete(Integer id) {
         roomImageService.deleteByRoomId(id);
         repo.deleteById(id);
+    }
+
+    public Room updateManager(Room room, ManagerGroup managerGroup){
+        room.setManagerGroup(managerGroup);
+
+        return repo.save(room);
     }
 }

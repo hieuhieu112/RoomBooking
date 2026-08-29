@@ -1,6 +1,7 @@
 package com.app.backend.entity;
 
 import com.app.backend.entity.baseEntity.BaseEntity;
+import com.app.backend.entity.enumm.RoomStatus;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -26,8 +27,15 @@ public class Room extends BaseEntity {
     @Column(nullable = false)
     private Integer capacity;
 
+    @Enumerated(EnumType.STRING)
+    private RoomStatus status;
+
+    @Column(name = "cleaning_duration_minutes")
+    private Integer cleaningDurationMinutes = 15;
+
     @ManyToOne
     @JoinColumn(name = "manager_group_id",nullable = true)
+    @JsonIgnore
     private ManagerGroup managerGroup;
 
     @ManyToOne
@@ -44,4 +52,8 @@ public class Room extends BaseEntity {
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "room")
     @JsonIgnore
     private List<Booking> bookings;
+
+    public Boolean isValidStatus(){
+        return this.status.equals(RoomStatus.ACTIVE);
+    }
 }

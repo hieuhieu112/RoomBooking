@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeviceIncidentDetailRequest {
+    private Integer id;
 
     @NotBlank(message = "Thong tin phieu phat không được để trống")
     private Integer deviceIncidentId;

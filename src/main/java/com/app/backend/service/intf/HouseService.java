@@ -10,6 +10,7 @@ public interface HouseService {
     House create(HouseRequest request);
     House getById(Integer id);
     List<House> getAll();
+    List<House> getAllByFilter(String search);
     House update(Integer id, HouseRequest request);
     void delete(Integer id);
 }

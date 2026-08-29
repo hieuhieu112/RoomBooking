@@ -20,14 +20,20 @@ public class Booking extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+
+    private  String note;
+
     @Column(nullable = false)
     private String reason;
 
     @Column(nullable = false, name = "start_time")
-    private LocalDateTime startTime = LocalDateTime.now();
+    private LocalDateTime startTime;
 
     @Column(name = "end_time", nullable = false)
-    private LocalDateTime endTime = LocalDateTime.now();
+    private LocalDateTime endTime;
+
+    @Column(name = "actual_end_time")
+    private LocalDateTime actualEndTime;
 
     @Column(nullable = false)
     private BookingStatus status =BookingStatus.INPROCESS;
@@ -42,7 +48,7 @@ public class Booking extends BaseEntity {
 
 
     @ManyToOne
-    @JoinColumn(name = "approved_by_user_id", nullable = false)
+    @JoinColumn(name = "approved_by_user_id", nullable = true)
     private User userApproved;
 
     @OneToMany(mappedBy = "booking", cascade = CascadeType.ALL)

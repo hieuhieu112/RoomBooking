@@ -54,6 +54,12 @@ public class HouseServiceImpl implements HouseService {
     }
 
     @Override
+    public List<House> getAllByFilter(String search) {
+
+        return repo.getAllByFilter(search);
+    }
+
+    @Override
     public List<House> getAll() {
         House[] items = cacheService.getOrLoad(
                 RedisKey.houseAll(),

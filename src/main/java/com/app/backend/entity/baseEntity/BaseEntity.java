@@ -19,7 +19,7 @@ public abstract class BaseEntity {
     private LocalDateTime createdAt;
 
     @CreatedBy
-    @Column(name = "created_by", nullable = false)
+    @Column(name = "created_by")
     private Integer createdBy;
 
     @LastModifiedDate
@@ -27,7 +27,7 @@ public abstract class BaseEntity {
     private LocalDateTime modifyAt;
 
     @LastModifiedBy
-    @Column(name = "modify_by", nullable = false)
+    @Column(name = "modify_by")
     private Integer modifyBy;
 
     @Version

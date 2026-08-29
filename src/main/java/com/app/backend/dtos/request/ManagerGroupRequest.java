@@ -11,6 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ManagerGroupRequest {
+    private Integer id;
 
     @NotBlank(message = "Ten không được để trống")
     private String name;

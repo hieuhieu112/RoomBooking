@@ -9,6 +9,7 @@ public interface RoleService {
     RoleResponse mapToResponse(Role entity);
     Role create(RoleRequest request);
     Role getById(Integer id);
+    Role getByName(String name);
     List<Role> getAll();
     Role update(Integer id, RoleRequest request);
     void delete(Integer id);

@@ -9,6 +9,8 @@ import lombok.*;
 @AllArgsConstructor
 public class DeviceCategoryRequest {
 
+    private Integer id;
+
     @NotBlank(message = "Ten the loai thiet bi không được để trống")
     private String name;
 }

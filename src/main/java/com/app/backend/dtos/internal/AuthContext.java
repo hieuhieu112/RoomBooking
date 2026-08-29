@@ -36,4 +36,10 @@ public class AuthContext {
         }
         return false;
     }
+
+
+    public boolean isFullAccess() {
+
+        return roles.contains("ROLE_SYSTEM_ADMIN");
+    }
 }

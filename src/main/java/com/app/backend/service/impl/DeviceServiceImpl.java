@@ -2,6 +2,7 @@ package com.app.backend.service.impl;
 
 import java.util.List;
 
+import com.app.backend.entity.enumm.DeviceTrackingType;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -33,13 +34,26 @@ public class DeviceServiceImpl implements DeviceService {
         return resp;
     }
 
+    private void checkValidData(DeviceRequest request){
+        if(repo.existsBySerial(request.getSerial())){
+            throw  new CommonException(ErrorCode.VALIDATION);
+        }
+    }
+
     @Override
     public Device create(DeviceRequest request) {
+        checkValidData(request);
         Device entity = new Device();
         entity.setName(request.getName());
         entity.setStatus(request.getStatus());
         entity.setDeviceCategory(deviceCategoryService.getById(request.getDeviceCategoryId()));
         entity.setDeviceModel(deviceModelService.getById(request.getDeviceModelId()));
+        entity.setQuantity(request.getQuantity());
+        entity.setTrackingType(request.getTrackingType());
+        entity.setSerial(request.getSerial());
+        if(request.getTrackingType().equals(DeviceTrackingType.QUANTITY) && request.getSerial().isEmpty()){
+            entity.generateSerial();
+        }
 //        entity.setRoom(roomService.getById(request.getRoomId()));
         entity = repo.save(entity);
         return (entity);
@@ -57,11 +71,19 @@ public class DeviceServiceImpl implements DeviceService {
 
     @Override
     public Device update(Integer id, DeviceRequest request) {
-        Device entity = repo.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
+
+        checkValidData(request);
+        Device entity = getById(id);
         entity.setName(request.getName());
         entity.setStatus(request.getStatus());
         entity.setDeviceCategory(deviceCategoryService.getById(request.getDeviceCategoryId()));
         entity.setDeviceModel(deviceModelService.getById(request.getDeviceModelId()));
+        entity.setQuantity(request.getQuantity());
+        entity.setTrackingType(request.getTrackingType());
+        entity.setSerial(request.getSerial());
+        if(request.getTrackingType().equals(DeviceTrackingType.QUANTITY) && request.getSerial().isEmpty()){
+            entity.generateSerial();
+        }
 //        entity.setRoomId(request.getRoomId());
         entity = repo.save(entity);
         return (entity);

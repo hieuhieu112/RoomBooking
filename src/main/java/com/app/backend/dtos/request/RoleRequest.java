@@ -8,6 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoleRequest {
+    private Integer id;
 
     @NotBlank(message = "Ten không được để trống")
     private String name;

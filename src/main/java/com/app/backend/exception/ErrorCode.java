@@ -41,7 +41,7 @@ public enum ErrorCode {
     AUTH_TOKEN_INVALID("ERROR.AUTH.TOKEN_INVALID", "Token invalid", HttpStatus.UNAUTHORIZED),
     AUTH_LOGIN_FAILED("ERROR.AUTH.LOGIN_FAILED", "Login failed", HttpStatus.UNAUTHORIZED),
     AUTH_ACCOUNT_INACTIVE("ERROR.AUTH.ACCOUNT_INACTIVE", "Tài khoan chua kich hoat", HttpStatus.FORBIDDEN),
-    AUTH_ACCOUNT_LOCKED("ERROR.AUTH.ACCOUNT_LOCKED", "Account is locked", HttpStatus.FORBIDDEN),
+    AUTH_ACCOUNT_LOCKED("ERROR.AUTH.ACCOUNT_LOCKED", "Tai khoan bi khoa", HttpStatus.FORBIDDEN),
     AUTH_EMAIL_NOTMATCH("ERROR.AUTH.EMAIL_NOTMATCH", "Email khong khop voi username", HttpStatus.FORBIDDEN),
     AUTH_OTP_NOTMATCH("ERROR.AUTH.OTP_NOTMATCH", "OTP khong chinh xac", HttpStatus.FORBIDDEN),
     AUTH_RESET_TOKEN_NOTMATCH("ERROR.AUTH.RESET_TOKEN_NOTMATCH", "RESET_TOKEN khong chinh xac", HttpStatus.FORBIDDEN),
@@ -49,6 +49,7 @@ public enum ErrorCode {
 
     // ===== USER =====
     USER_NOT_FOUND("ERROR.USER.NOT_FOUND", "Người dùng không tồn tại", HttpStatus.NOT_FOUND),
+    USER_IS_NOT_MANAGER("ERROR.USER.IS_NOT_MANAGER", "Người dùng không phai quan ly", HttpStatus.CONFLICT),
     USER_ALREADY_EXISTS("ERROR.USER.ALREADY_EXISTS", "User already exists", HttpStatus.CONFLICT),
     USER_SORTID_EXISTS("ERROR.USER.SORTID_EXISTS", "User sort id already exists", HttpStatus.CONFLICT),
     USER_EMAIL_EXISTS("ERROR.USER.EMAIL_EXISTS", "Email already exists", HttpStatus.CONFLICT),
@@ -81,6 +82,7 @@ public enum ErrorCode {
     DEVICE_CATEGORY_NOT_FOUND("ERROR.DEVICE_CATEGORY_NOT_FOUND", "Không tìm thấy thể loại thiết bị", HttpStatus.NOT_FOUND),
     // ===== DEVICE=====
     DEVICE_NOT_FOUND("ERROR.DEVICE_NOT_FOUND", "Không tìm thấy thiết bị", HttpStatus.NOT_FOUND),
+    SERIAL_EXIST("ERROR.SERIAL_EXIST", "Serial đã tồn tại", HttpStatus.BAD_REQUEST),
     // ===== DEVICE_MODEL =====
     DEVICE_MODEL_NOT_FOUND("ERROR.DEVICE_MODEL_NOT_FOUND", "Không tìm thấy model thiết bị", HttpStatus.NOT_FOUND),
     // ===== DEVICE_INCIENT =====
@@ -89,10 +91,16 @@ public enum ErrorCode {
     // ===== ROOM_TYPE =====
     ROOM_TYPE_NOT_FOUND("ERROR.ROOM_TYPE_NOT_FOUND", "Không tìm thấy loại phòng", HttpStatus.NOT_FOUND),
     // ===== ROOM =====
+
+    ROOM_NAME_EXISTS("ERROR.ROOM_NAME_EXISTS", "Tên phòng đã tồn tại", HttpStatus.BAD_REQUEST),
     ROOM_NOT_FOUND("ERROR.ROOM_NOT_FOUND", "Không tìm thấy phòng", HttpStatus.NOT_FOUND),
+    ROOM_NOT_AVAILABLE("ERROR.ROOM_NOT_AVAILABLE", "Phòng hiện không thể đặt", HttpStatus.BAD_REQUEST),
+
 
     // ===== Booking =====
     BOOKING_NOT_FOUND("ERROR.BOOKING_NOT_FOUND", "Không tìm thấy booking", HttpStatus.NOT_FOUND),
+    ROOM_ALREADY_BOOKED("ERROR.ROOM_ALREADY_BOOKED", "Phòng đã được đặt trong khoảng thời gian này", HttpStatus.CONFLICT),
+    ROOM_INVALID("ERROR.ROOM_INVALID", "Thông tin booking không hợp lệ.", HttpStatus.CONFLICT),
 
 
     SHIFT_TEMPLATE_NOT_FOUND("ERROR.SHIFTTEMPLATE.NOT_FOUND", "SHIFT TEMPLATE not found", HttpStatus.NOT_FOUND),

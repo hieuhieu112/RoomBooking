@@ -21,10 +21,13 @@ public class ManagerGroup {
     private String name;
 
     @OneToMany(mappedBy = "managerGroup")
-    @JsonIgnore
     private List<User> users;
 
     @OneToMany(mappedBy = "managerGroup")
-    @JsonIgnore
+//    @JoinTable(
+//            name = "manager_group_room",
+//            joinColumns = @JoinColumn(name = "manager_group_id"),
+//            inverseJoinColumns = @JoinColumn(name = "room_id")
+//    )
     private List<Room> rooms;
 }

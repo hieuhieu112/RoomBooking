@@ -64,6 +64,11 @@ public class RoomTypeServiceImpl implements RoomTypeService {
     }
 
     @Override
+    public List<RoomType> getAllByFilter(String search) {
+        return repo.getAllByFilter(search);
+    }
+
+    @Override
     public RoomType update(Integer id, RoomTypeRequest request) {
         RoomType entity = getById(id);
         entity.setName(request.getName());

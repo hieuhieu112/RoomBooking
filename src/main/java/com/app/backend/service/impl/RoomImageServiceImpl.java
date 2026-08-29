@@ -45,7 +45,7 @@ public class RoomImageServiceImpl implements RoomImageService {
     public RoomImageResponse mapToResponse(RoomImage entity) {
         RoomImageResponse resp = new RoomImageResponse();
         resp.setId(entity.getId());
-        resp.setUrl("/api/v1/roomimages/" + entity.getId());
+        resp.setUrl("/roomimages/" + entity.getId());
         resp.setRoomId(entity.getRoom().getId());
         resp.setDisplayOrder(entity.getDisplayOrder());
         resp.setOriginalName(entity.getOriginalName());

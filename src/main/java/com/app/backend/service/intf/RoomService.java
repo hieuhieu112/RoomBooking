@@ -11,6 +11,7 @@ public interface RoomService {
     Room create(RoomRequest request, List<MultipartFile> images);
     Room getById(Integer id);
     List<Room> getAll();
-    Room update(Integer id, RoomRequest request);
+    List<Room> getAllByFilter(String search, Integer houseId,Integer roomTypeId);
+    Room update(Integer id, RoomRequest request, List<MultipartFile> images);
     void delete(Integer id);
 }

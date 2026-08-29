@@ -27,16 +27,16 @@ public class DeviceBorrowDetailServiceImpl implements DeviceBorrowDetailService 
 //        resp.setId(entity.getId());
         resp.setBookingId(entity.getBooking().getId());
         resp.setDeviceId(entity.getDevice().getId());
-        resp.setNote(entity.getNote());
+//        resp.setNote(entity.getNote());
         return resp;
     }
 
     @Override
     public DeviceBorrowDetail create(DeviceBorrowDetailRequest request) {
         DeviceBorrowDetail entity = new DeviceBorrowDetail();
-        entity.setBooking(bookingService.getById(request.getBookingId()));
+//        entity.setBooking(bookingService.getById(request.getBookingId()));
         entity.setDevice(deviceService.getById(request.getDeviceId()));
-        entity.setNote(request.getNote());
+//        entity.setNote(request.getNote());
         entity = repo.save(entity);
         return (entity);
     }
@@ -54,9 +54,9 @@ public class DeviceBorrowDetailServiceImpl implements DeviceBorrowDetailService 
     @Override
     public DeviceBorrowDetail update(Long id, DeviceBorrowDetailRequest request) {
         DeviceBorrowDetail entity = repo.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
-        entity.setBooking(bookingService.getById(request.getBookingId()));
+//        entity.setBooking(bookingService.getById(request.getBookingId()));
         entity.setDevice(deviceService.getById(request.getDeviceId()));
-        entity.setNote(request.getNote());
+//        entity.setNote(request.getNote());
         entity = repo.save(entity);
         return (entity);
     }

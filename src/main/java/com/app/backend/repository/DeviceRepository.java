@@ -5,4 +5,6 @@ import org.springframework.stereotype.Repository;
 import com.app.backend.entity.Device;
 
 @Repository
-public interface DeviceRepository extends JpaRepository<Device, Integer> {}
+public interface DeviceRepository extends JpaRepository<Device, Integer> {
+    Boolean existsBySerial(String serial);
+}

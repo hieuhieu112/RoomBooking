@@ -2,6 +2,7 @@ package com.app.backend.controller;
 
 import java.util.List;
 
+import com.app.backend.entity.House;
 import com.app.backend.service.impl.HouseServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +42,18 @@ public class HouseController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping(value = "/filter")
+    public ResponseEntity<DataResponse<List<HouseResponse>>> getAll(
+            @RequestParam(required = false) String search
+    ) {
+        DataResponse<List<HouseResponse>> response = DataResponse.<List<HouseResponse>>builder()
+                .data(service.getAllByFilter(search).stream().map(service::mapToResponse).toList())
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

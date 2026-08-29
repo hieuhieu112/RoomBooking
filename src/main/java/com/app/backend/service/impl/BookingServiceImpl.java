@@ -1,15 +1,22 @@
 package com.app.backend.service.impl;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
+import com.app.backend.entity.*;
+import com.app.backend.entity.enumm.BookingStatus;
+import com.app.backend.entity.enumm.NotificationType;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
+import com.app.backend.redis.NotificationEvent;
+import com.app.backend.redis.NotificationPublisher;
+import com.app.backend.service.AuthContextService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
-import com.app.backend.entity.Booking;
 import com.app.backend.repository.BookingRepository;
 import com.app.backend.service.intf.BookingService;
 
@@ -20,6 +27,9 @@ public class BookingServiceImpl implements BookingService {
     private final BookingRepository repo;
     private final UserServiceImpl userService;
     private final RoomServiceImpl roomService;
+    private final DeviceServiceImpl deviceService;
+    private final NotificationPublisher notificationPublisher;
+    private final ManagerGroupServiceImpl managerGroupService;
 
     public BookingResponse mapToResponse(Booking entity) {
         BookingResponse resp = new BookingResponse();
@@ -30,22 +40,67 @@ public class BookingServiceImpl implements BookingService {
         resp.setStatus(entity.getStatus().name());
         resp.setUserId(entity.getUserUsing().getId());
         resp.setRoomId(entity.getRoom().getId());
+        if(entity.getUserApproved()  == null){
+            return resp;
+        }
         resp.setApprovedByUserId(entity.getUserApproved().getId());
         return resp;
     }
 
     @Override
+    @Transactional
     public Booking create(BookingRequest request) {
         Booking entity = new Booking();
+        Room room = roomService.getById(request.getRoomId());
+        if(!room.isValidStatus()){
+            throw new CommonException(ErrorCode.ROOM_NOT_AVAILABLE);
+        }
+
+        if(isRoomBooked(room.getId(), request.getStartTime(),request.getEndTime())){
+            throw  new CommonException(ErrorCode.ROOM_ALREADY_BOOKED);
+        }
+
         entity.setReason(request.getReason());
         entity.setStartTime(request.getStartTime());
         entity.setEndTime(request.getEndTime());
-        entity.setStatus(request.getStatus());
-        entity.setUserUsing(userService.getById(request.getUserId()));
-        entity.setRoom(roomService.getById(request.getRoomId()));
-        entity.setUserApproved(userService.getById(request.getApprovedByUserId()));
+        entity.setActualEndTime(request.getEndTime().plusMinutes(room.getCleaningDurationMinutes()));
+        entity.setStatus(BookingStatus.INPROCESS);
+        entity.setUserUsing(userService.getById(AuthContextService.getContext().getUserId()));
+        entity.setRoom(room);
+        entity.setStatus(BookingStatus.CREATED);
+
+        //devices:
+
+        List<DeviceBorrowDetail> deviceBorrowDetails = new ArrayList<>();
+        for(DeviceBorrowDetailRequest devicerq: request.getDeviceBorrowDetail()){
+            Device device = deviceService.getById(devicerq.getDeviceId());
+            DeviceBorrowDetail deviceBorrowDetail = new DeviceBorrowDetail();
+            deviceBorrowDetail.setBooking(entity);
+            deviceBorrowDetail.setDevice(device);
+            deviceBorrowDetails.add(deviceBorrowDetail);
+        }
+        entity.setDeviceBorrowDetail(deviceBorrowDetails);
+
+        entity.setUserApproved(null);
         entity = repo.save(entity);
+
+        sendNotificationToApproval(room, room.getManagerGroup().getUsers());
+
         return (entity);
+    }
+
+
+    private void sendNotificationToApproval(Room room, List<User> recevier){
+        for(User u: recevier){
+            notificationPublisher.sendMessage(NotificationEvent.builder()
+                    .userId(u.getId())
+                    .type(NotificationType.CREATE_BOOKING)
+                    .title("Phòng "+ room.getName()+ "-" + room.getId() + "có yêu cầu đặt phòng")
+                    .username(AuthContextService.getContext().getUsername())
+                    .content("Người dùng " + AuthContextService.getContext().getUsername() + " có yêu cầu đặt phòng " + room.getName()+ "-" + room.getId())
+                    .build());
+        }
+
     }
 
     @Override
@@ -54,8 +109,40 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getAll() {
+    public List<Booking> getAllByPermission() {
+        if(
+                AuthContextService.getContext().isFullAccess()
+        ){
+            return getAllByAdmin();
+        }
+        else {
+            return getAllByUser();
+        }
+    }
+
+    @Override
+    public List<Booking> getAllByAdmin() {
         return repo.findAll();
+    }
+
+    @Override
+    public List<Booking> getAllByUser() {
+        User user = userService.getById(AuthContextService.getContext().getUserId());
+        if(
+                user.getManagerGroup() == null
+        ){
+            throw new CommonException(ErrorCode.USER_IS_NOT_MANAGER);
+        }
+
+        ManagerGroup managerGroup = managerGroupService.getById( user.getManagerGroup().getId());
+
+        List<Booking> bookings = repo.findByRoomIds(managerGroup.getRooms().stream().map(room -> room.getId()).toList());
+        return bookings;
+    }
+
+    @Override
+    public Booking approval(Integer id) {
+        return null;
     }
 
     @Override
@@ -64,14 +151,28 @@ public class BookingServiceImpl implements BookingService {
         entity.setReason(request.getReason());
         entity.setStartTime(request.getStartTime());
         entity.setEndTime(request.getEndTime());
-        entity.setStatus(request.getStatus());
-        entity.setUserUsing(userService.getById(request.getUserId()));
+//        entity.setStatus(request.getStatus());
+//        entity.setUserUsing(userService.getById(request.getUserId()));
         entity.setRoom(roomService.getById(request.getRoomId()));
-        entity.setUserApproved(userService.getById(request.getApprovedByUserId()));
+//        entity.setUserApproved(userService.getById(request.getApprovedByUserId()));
         entity = repo.save(entity);
         return (entity);
     }
 
     @Override
-    public void delete(Integer id) { repo.deleteById(id); }
+    public void delete(Integer id) {
+        repo.deleteById(id);
+    }
+
+    @Override
+    public Boolean isRoomBooked(Integer roomId, LocalDateTime startTime, LocalDateTime endTime) {
+
+        return repo.existsOverlappingBookings(roomId, startTime,endTime);
+    }
+
+    private void validDataBooking(Booking b){
+        if (b.getStartTime().isAfter(b.getEndTime())){
+            throw  new CommonException(ErrorCode.ROOM_INVALID);
+        }
+    }
 }

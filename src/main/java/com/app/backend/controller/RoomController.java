@@ -57,11 +57,34 @@ public class RoomController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<RoomResponse>> update(@PathVariable Integer id, @Valid @RequestBody RoomRequest request, BindingResult result) {
+    @GetMapping(value = "/filter")
+    public ResponseEntity<DataResponse<List<RoomResponse>>> getByFilter(
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Integer houseId,
+            @RequestParam(required = false) Integer roomTypeId
+    ) {
+        List<Room> a = service.getAllByFilter(search, houseId, roomTypeId);
+        DataResponse<List<RoomResponse>> response = DataResponse.<List<RoomResponse>>builder()
+
+                .data(a.stream().map(service::mapToResponse).toList())
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<DataResponse<RoomResponse>> update(
+            @PathVariable Integer id,
+            @Valid @ModelAttribute RoomRequest request,
+            @RequestPart("images") List<MultipartFile> images,
+            BindingResult result
+    ) {
         ValidRequestUtil.validateRequest(result);
+        Room r = service.update(id, request, images);
+
         DataResponse<RoomResponse> response = DataResponse.<RoomResponse>builder()
-                .data(service.mapToResponse(service.update(id, request)))
+                .data(service.mapToResponse(r))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();

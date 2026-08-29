@@ -14,6 +14,6 @@ public class DeviceIncidentResponse {
     private String status;
     private Integer userId;
     private Integer managerId;
-    private Integer bookingId;
+//    private Integer bookingId;
     private Integer incidentBy;
 }

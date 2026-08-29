@@ -8,10 +8,11 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RoomImageRequest {
+    private Integer id;
 
     @NotBlank(message = "url không được để trống")
     private String url;
 
-//    @NotBlank(message = "Thong tin phong không được để trống")
-//    private Integer roomId;
+    @NotBlank(message = "Thong tin phong không được để trống")
+    private Integer roomId;
 }

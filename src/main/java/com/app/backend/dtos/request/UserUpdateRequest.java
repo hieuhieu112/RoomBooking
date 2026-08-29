@@ -13,6 +13,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserUpdateRequest {
+    private Integer id;
 
     @NotBlank(message = "Ten không được để trống")
     private String name;

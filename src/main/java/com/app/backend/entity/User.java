@@ -23,10 +23,6 @@ import java.util.Set;
 @AllArgsConstructor
 @Builder
 public class User extends BaseEntity implements UserDetails {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id;
-
     @Column(nullable = false, name = "name")
     private String name;
 
@@ -35,6 +31,10 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false, name = "username", unique = true)
     private String username;
 
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @Column(nullable = false, name = "pass")
     private String password;

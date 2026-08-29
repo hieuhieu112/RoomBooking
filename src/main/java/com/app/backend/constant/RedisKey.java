@@ -13,6 +13,11 @@ public class RedisKey {
     private static final String USER_PREFIX = "user:";
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
 
+    private static final String OTP_PREFIX = "otp:";
+
+    public static String otpTypeById(String username) {
+        return OTP_PREFIX + "username:" + username;
+    }
 
     public static String refreshTokenTypeById(Integer id) {
         return REFRESH_TOKEN_PREFIX + "id:" + id;
@@ -80,6 +85,10 @@ public class RedisKey {
 
     public static String roleById(Integer id) {
         return ROLE_PREFIX + "id:" + id;
+    }
+
+    public static String roleByName(String name) {
+        return ROLE_PREFIX + "name:" + name;
     }
 
     public static String userProfileById(Integer id) {

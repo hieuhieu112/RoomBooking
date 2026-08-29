@@ -15,6 +15,7 @@ public class RoomRequest {
     private Integer capacity;
     private Integer roomTypeId;
     private Integer houseId;
+    private Integer cleaningDurationMinutes = 15;
 //    private String image;
     private Integer managerGroupId;
 }

@@ -1,11 +1,12 @@
 server:
   port: 8082
 app:
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
   jwt:
     accesssecret: bmd1b2kgZGFuIGJhIGNvIGNheSBjYSBsZW0gc2ljdWxh
     refreshsecret: bmd1b2kgZGFuIG9uZyBjbyBjb24gY29uZyBraG9uZyBuZ3U=
     access-token-expire-seconds: 600
-    refresh-token-expire-seconds: 86400
+    refresh-token-expire-seconds: 604800
 
   cookie:
     secure: false
@@ -16,7 +17,17 @@ spring:
     url: jdbc:postgresql://localhost:5432/room-booking
     username: postgres
     password: hieu
-
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: hieuahieua@gmail.com
+    password: ngjq orda ehxy dbxi
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
   jpa:
     hibernate:
       ddl-auto: update

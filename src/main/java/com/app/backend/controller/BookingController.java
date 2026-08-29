@@ -44,9 +44,9 @@ public class BookingController {
     }
 
     @GetMapping
-    public ResponseEntity<DataResponse<List<BookingResponse>>> getAll() {
+    public ResponseEntity<DataResponse<List<BookingResponse>>> getAllByPermission() {
         DataResponse<List<BookingResponse>> response = DataResponse.<List<BookingResponse>>builder()
-                .data(service.getAll().stream().map(service::mapToResponse).toList())
+                .data(service.getAllByPermission().stream().map(service::mapToResponse).toList())
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();

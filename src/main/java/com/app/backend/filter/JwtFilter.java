@@ -1,6 +1,7 @@
 package com.app.backend.filter;
 
 
+import com.app.backend.constant.SecurityConstant;
 import com.app.backend.entity.User;
 import com.app.backend.service.JwtService;
 import com.app.backend.utils.Constant;
@@ -25,6 +26,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -45,13 +47,12 @@ public class JwtFilter extends OncePerRequestFilter {
             throws ServletException, IOException
     {
         try{
-            HttpServletRequest req = (HttpServletRequest) request;
             String path = request.getServletPath();
-            if (path.contains("/authen/login") || path.contains("/authen/refresh")) {
+            if (shouldNotFilter(request)) {
                 filterChain.doFilter(request, response);
                 return;
             }
-            log.info("<= {} {} {}ms [{}]", req.getMethod(), req.getRequestURI(), Instant.now(), UUID.randomUUID().toString());
+            log.info("<= {} {} {}ms [{}]", ((HttpServletRequest) request).getMethod(), ((HttpServletRequest) request).getRequestURI(), Instant.now(), UUID.randomUUID().toString());
 
             final String authHeader = request.getHeader("Authorization");
             if(authHeader != null && !authHeader.isBlank() && authHeader.startsWith("Bearer ")){
@@ -102,5 +103,12 @@ public class JwtFilter extends OncePerRequestFilter {
             MDC.clear();
         }
 
+    }
+
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
+        String path = request.getServletPath();
+
+        return Arrays.asList(SecurityConstant.PUBLIC_ENDPOINTS).contains(path);
     }
 }

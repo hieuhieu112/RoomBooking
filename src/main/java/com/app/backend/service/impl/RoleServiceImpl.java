@@ -54,6 +54,17 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
+    public Role getByName(String name) {
+        return
+                cacheService.getOrLoad(
+                        RedisKey.roleByName(name),
+                        Role.class,
+                        ROLE_CACHE_TTL,
+                        () -> repo.findByName(name).orElseThrow(() -> new CommonException(ErrorCode.ROLE_NOT_FOUND))
+                );
+    }
+
+    @Override
     public List<Role> getAll() {
 
         Role[] roles =      cacheService.getOrLoad(

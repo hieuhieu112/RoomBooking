@@ -1,6 +1,7 @@
 package com.app.backend.service.impl;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.app.backend.entity.ManagerGroup;
 import com.app.backend.entity.Role;
@@ -22,7 +23,8 @@ import com.app.backend.service.intf.UserService;
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository repo;
-    private final ManagerGroupServiceImpl managerGroupService;
+    private final RoleServiceImpl roleService;
+//    private final ManagerGroupServiceImpl managerGroupService;
     private final PasswordEncoder passwordEncoder;
 
     public UserResponse mapToResponse(User entity) {
@@ -41,12 +43,15 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User create(UserRequest request) {
+        return createSaveDB(request, null);
+    }
 
-        if(repo.existsByEmail(request.getEmail())){
+    public User createSaveDB(UserRequest request, Status status){
+        if(existsByEmail(request.getEmail())){
             throw  new CommonException(ErrorCode.USER_EMAIL_EXISTS);
         }
 
-        if (repo.existsByUsername(request.getUsername())){
+        if (existsByUsername(request.getUsername())){
             throw new CommonException(ErrorCode.USER_USERNAME_EXISTS);
         }
 
@@ -55,12 +60,16 @@ public class UserServiceImpl implements UserService {
         entity.setEmail(request.getEmail());
         entity.setIncidentCount(request.getIncidentCount());
         entity.setPassword(passwordEncoder.encode(request.getPass()));
-        entity.setStatus(Status.LOCKED);
+        entity.setStatus(
+                status != null ? status : request.getStatus()
+        );
         entity.setUsername(request.getUsername());
-        ManagerGroup managerGroup =  managerGroupService.getById(request.getManagerGroupId());
+//        ManagerGroup managerGroup =  managerGroupService.getById(request.getManagerGroupId());
 
-        entity.setManagerGroup(managerGroup);
-        entity = repo.save(entity);
+//        entity.setManagerGroup(managerGroup);
+
+        entity.setRoles(request.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet()));
+        entity = save(entity);
         return entity;
     }
 
@@ -97,12 +106,38 @@ public class UserServiceImpl implements UserService {
 //        entity.setIncidentCount(request.getIncidentCount());
 //        entity.setPassword(request.getPass());
 //        entity.setUsername(request.getUsername());
-        ManagerGroup managerGroup = managerGroupService.getById(request.getManagerGroupId());
-        entity.setManagerGroup(managerGroup);
-        entity = repo.save(entity);
+//        ManagerGroup managerGroup = managerGroupService.getById(request.getManagerGroupId());
+//        entity.setManagerGroup(managerGroup);
+        entity = save(entity);
         return entity;
+    }
+    public void activeUser(String username){
+        User user = getByUsername(username);
+
+        user.setStatus(Status.ACTIVE);
+
+        save(user);
+    }
+
+    public User changeManageGroup(User user, ManagerGroup managerGroup){
+        user.setManagerGroup(managerGroup);
+        return repo.save(user);
+    }
+
+    private User save(User user){
+        return repo.save(user);
     }
 
     @Override
     public void delete(Integer id) { repo.deleteById(id); }
+
+    @Override
+    public Boolean existsByEmail(String email) {
+        return repo.existsByEmail(email);
+    }
+
+    @Override
+    public Boolean existsByUsername(String username) {
+        return repo.existsByUsername(username);
+    }
 }

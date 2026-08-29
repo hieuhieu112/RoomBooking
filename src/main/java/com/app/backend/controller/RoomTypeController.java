@@ -53,6 +53,18 @@ public class RoomTypeController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping(value = "/filter")
+    public ResponseEntity<DataResponse<List<RoomTypeResponse>>> getAllBilter(
+            @RequestParam(required = false) String search
+    ) {
+        DataResponse<List<RoomTypeResponse>> response = DataResponse.<List<RoomTypeResponse>>builder()
+                .data(service.getAllByFilter(search).stream().map(service::mapToResponse).toList())
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<DataResponse<RoomTypeResponse>> update(@PathVariable Integer id, @Valid @RequestBody RoomTypeRequest request, BindingResult result) {
         ValidRequestUtil.validateRequest(result);

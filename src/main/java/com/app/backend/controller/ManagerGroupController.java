@@ -54,7 +54,10 @@ public class ManagerGroupController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<DataResponse<ManagerGroupResponse>> update(@PathVariable Integer id, @Valid @RequestBody ManagerGroupRequest request, BindingResult result) {
+    public ResponseEntity<DataResponse<ManagerGroupResponse>> update(@PathVariable Integer id,
+                                                                     @Valid @RequestBody ManagerGroupRequest request,
+                                                                     BindingResult result
+        ) {
         ValidRequestUtil.validateRequest(result);
         DataResponse<ManagerGroupResponse> response = DataResponse.<ManagerGroupResponse>builder()
                 .data(service.mapToResponse(service.update(id, request)))

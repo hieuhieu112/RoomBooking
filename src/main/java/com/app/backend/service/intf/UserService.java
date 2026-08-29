@@ -3,6 +3,7 @@ package com.app.backend.service.intf;
 import java.util.List;
 import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
+import com.app.backend.entity.Booking;
 import com.app.backend.entity.User;
 
 public interface UserService {
@@ -14,4 +15,7 @@ public interface UserService {
     List<User> getAll();
     User update(Integer id, UserUpdateRequest request);
     void delete(Integer id);
+
+    Boolean existsByEmail(String email);
+    Boolean existsByUsername(String username);
 }
