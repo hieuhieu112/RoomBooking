@@ -29,7 +29,10 @@ public class ResponseWrapperAdvice implements ResponseBodyAdvice<Object> {
                                   ServerHttpResponse response) {
         if (body instanceof DataResponse<?> res) {
             res.setTimestamp(LocalDateTime.now());
-            res.setPath(request.getURI().getPath());
+//            res.setPath(request.getURI().getPath());
+            if (res.getPath() == null || res.getPath().isBlank()) {
+                res.setPath(request.getURI().getPath());
+            }
             return res;
         }
 

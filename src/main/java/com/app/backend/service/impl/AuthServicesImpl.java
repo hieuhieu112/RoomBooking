@@ -19,6 +19,7 @@ import com.app.backend.service.JwtService;
 import com.app.backend.service.RedisService;
 import com.app.backend.service.intf.AuthServices;
 import io.jsonwebtoken.Claims;
+import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.security.SecurityUtil;
@@ -154,6 +155,7 @@ public class AuthServicesImpl implements AuthServices {
             </p>
         </div>
         """.formatted(otp);
+
 
         emailService.sendEmail(request.getEmail(), subject, html);
 

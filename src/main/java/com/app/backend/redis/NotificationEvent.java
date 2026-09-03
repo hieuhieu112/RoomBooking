@@ -21,5 +21,7 @@ public class NotificationEvent {
 
     private String content;
 
+    private Long referenceId;
+
     Map<String, Object> metadata;
 }

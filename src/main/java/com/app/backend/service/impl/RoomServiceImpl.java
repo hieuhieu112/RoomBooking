@@ -4,18 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.app.backend.entity.ManagerGroup;
-import com.app.backend.entity.enumm.NotificationType;
 import com.app.backend.redis.NotificationPublisher;
-import com.app.backend.redis.RedisConfig;
-import com.app.backend.redis.NotificationEvent;
 import com.app.backend.entity.RoomImage;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
-import com.app.backend.service.AuthContextService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AllArgsConstructor;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.app.backend.dtos.request.*;
@@ -32,10 +25,7 @@ public class RoomServiceImpl implements RoomService {
     private final RoomRepository repo;
     private final RoomTypeServiceImpl roomTypeService;
     private final HouseServiceImpl houseService;
-//    private final ManagerGroupServiceImpl managerGroupService;
     private final RoomImageServiceImpl roomImageService;
-
-    private final NotificationPublisher notificationPublisher;
 
 
     public RoomResponse mapToResponse(Room entity) {

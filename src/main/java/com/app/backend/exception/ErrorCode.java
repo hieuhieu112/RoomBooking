@@ -99,6 +99,7 @@ public enum ErrorCode {
 
     // ===== Booking =====
     BOOKING_NOT_FOUND("ERROR.BOOKING_NOT_FOUND", "Không tìm thấy booking", HttpStatus.NOT_FOUND),
+    USER_NOT_AUTH_BOOKING("ERROR.USER_NOT_AUTH_BOOKING", "Người dùng không có quyền duyệt yêu cầu.", HttpStatus.BAD_REQUEST),
     ROOM_ALREADY_BOOKED("ERROR.ROOM_ALREADY_BOOKED", "Phòng đã được đặt trong khoảng thời gian này", HttpStatus.CONFLICT),
     ROOM_INVALID("ERROR.ROOM_INVALID", "Thông tin booking không hợp lệ.", HttpStatus.CONFLICT),
 

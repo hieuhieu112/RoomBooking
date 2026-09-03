@@ -40,11 +40,33 @@ public class BookingServiceImpl implements BookingService {
         resp.setStatus(entity.getStatus().name());
         resp.setUserId(entity.getUserUsing().getId());
         resp.setRoomId(entity.getRoom().getId());
-        if(entity.getUserApproved()  == null){
-            return resp;
+        if(entity.getUserApproved()  != null){
+            resp.setApprovedByUserId(entity.getUserApproved().getId());
         }
-        resp.setApprovedByUserId(entity.getUserApproved().getId());
+
+//        resp.setCanApprove(checkCanApprove(entity));
+
         return resp;
+    }
+
+
+    public Boolean checkCanApprove(Booking entity){
+        User user = userService.getById(AuthContextService.getContext().getUserId());
+        if(
+                user.getManagerGroup() == null
+        ){
+            return false;
+        }
+        else{
+            ManagerGroup managerGroup = managerGroupService.getById( user.getManagerGroup().getId());
+            if (managerGroup.getRooms().stream().anyMatch(
+                    room -> room.getId().equals(entity.getRoom().getId())
+            )
+            ){
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -84,20 +106,21 @@ public class BookingServiceImpl implements BookingService {
         entity.setUserApproved(null);
         entity = repo.save(entity);
 
-        sendNotificationToApproval(room, room.getManagerGroup().getUsers());
+        sendNotificationToApproval(room, room.getManagerGroup().getUsers(), entity.getId());
 
         return (entity);
     }
 
 
-    private void sendNotificationToApproval(Room room, List<User> recevier){
+    private void sendNotificationToApproval(Room room, List<User> recevier, Integer id){
         for(User u: recevier){
             notificationPublisher.sendMessage(NotificationEvent.builder()
                     .userId(u.getId())
                     .type(NotificationType.CREATE_BOOKING)
                     .title("Phòng "+ room.getName()+ "-" + room.getId() + "có yêu cầu đặt phòng")
-                    .username(AuthContextService.getContext().getUsername())
+                    .username(u.getUsername())
                     .content("Người dùng " + AuthContextService.getContext().getUsername() + " có yêu cầu đặt phòng " + room.getName()+ "-" + room.getId())
+                    .referenceId(id.longValue())
                     .build());
         }
 
@@ -142,7 +165,18 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking approval(Integer id) {
-        return null;
+        Booking entity = getById(id);
+        if(!checkCanApprove(entity)){
+            throw new CommonException(ErrorCode.USER_NOT_AUTH_BOOKING);
+        }
+
+        entity.setStatus(BookingStatus.BOOKED);
+
+        User user = userService.getById(AuthContextService.getContext().getUserId());
+        entity.setUserApproved(user);
+
+        repo.save(entity);
+        return entity;
     }
 
     @Override

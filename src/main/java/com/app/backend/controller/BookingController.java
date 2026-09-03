@@ -32,9 +32,11 @@ public class BookingController {
     @GetMapping("/{id}")
     public ResponseEntity<DataResponse<BookingResponse>> getById(@PathVariable Integer id) {
         var res = service.getById(id);
+        BookingResponse a = service.mapToResponse(res);
+        a.setCanApprove(service.checkCanApprove(res));
         if (res != null) {
             DataResponse<BookingResponse> response = DataResponse.<BookingResponse>builder()
-                    .data(service.mapToResponse(res))
+                    .data(a)
                     .statusCode(StatusRes.SUCCESS)
                     .message("SUCCESS")
                     .build();
@@ -47,6 +49,28 @@ public class BookingController {
     public ResponseEntity<DataResponse<List<BookingResponse>>> getAllByPermission() {
         DataResponse<List<BookingResponse>> response = DataResponse.<List<BookingResponse>>builder()
                 .data(service.getAllByPermission().stream().map(service::mapToResponse).toList())
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping(value = "/approval")
+    public ResponseEntity<DataResponse<List<BookingResponse>>> getAllApproval() {
+        DataResponse<List<BookingResponse>> response = DataResponse.<List<BookingResponse>>builder()
+                .data(service.getAllByPermission().stream().map(service::mapToResponse).toList())
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{id}/approval")
+    public ResponseEntity<DataResponse<BookingResponse>> approval(
+            @PathVariable Integer id
+    ) {
+        DataResponse<BookingResponse> response = DataResponse.<BookingResponse>builder()
+                .data(service.mapToResponse(service.approval(id)))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();

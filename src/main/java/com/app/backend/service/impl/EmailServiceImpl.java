@@ -22,31 +22,29 @@ public class EmailServiceImpl implements EmailService {
             String htmlContent
     ) {
         try {
-            SimpleMailMessage mess = new SimpleMailMessage();
-            mess.setFrom("hieuahieua@gmail.com");
-            mess.setTo(to);
-            mess.setSubject(subject);
-            mess.setText(htmlContent);
+//            SimpleMailMessage mess = new SimpleMailMessage();
+//            mess.setFrom("hieuahieua@gmail.com");
+//            mess.setTo(to);
+//            mess.setSubject(subject);
+//            mess.setText(htmlContent, true);
+//
+//            mailSender.send(mess);
+//            System.out.println("Mail thanh cong");
+//
+            MimeMessage message = mailSender.createMimeMessage();
 
-            mailSender.send(mess);
-            System.out.println("Mail thanh cong");
-//
-//            MimeMessage message = mailSender.createMimeMessage();
-//
-//            MimeMessageHelper helper =
-//                    new MimeMessageHelper(message, true, "UTF-8");
-//
-//            helper.setTo(to);
-//            helper.setSubject(subject);
-//            helper.setText(htmlContent, true);
-//
-//            mailSender.send(message);
+            MimeMessageHelper helper =
+                    new MimeMessageHelper(message, true, "UTF-8");
 
-//        } catch (MessagingException e) {
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(htmlContent, true);
+
+            mailSender.send(message);
+
+        } catch (MessagingException e) {
+            e.printStackTrace();
 //            throw new RuntimeException("Failed to send email", e);
-//        }
-            } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        }
     }
 }

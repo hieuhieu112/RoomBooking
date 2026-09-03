@@ -16,4 +16,5 @@ public class BookingResponse {
     private Integer userId;
     private Integer roomId;
     private Integer approvedByUserId;
+    private Boolean canApprove = false;
 }
