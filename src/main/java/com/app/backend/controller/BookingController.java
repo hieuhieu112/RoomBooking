@@ -13,7 +13,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/bookings")
+@RequestMapping("/bookings")
 @AllArgsConstructor
 public class BookingController {
     private final BookingServiceImpl service;

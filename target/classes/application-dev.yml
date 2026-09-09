@@ -1,27 +1,33 @@
 server:
-  port: 8082
+  port: ${APP_PORT:8080}
+  servlet:
+    context-path: /rba/api/v1
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   jwt:
-    accesssecret: bmd1b2kgZGFuIGJhIGNvIGNheSBjYSBsZW0gc2ljdWxh
-    refreshsecret: bmd1b2kgZGFuIG9uZyBjbyBjb24gY29uZyBraG9uZyBuZ3U=
+    accesssecret: ${JWT_ACCESS_SECRET:bmd1b2kgZGFuIGJhIGNvIGNheSBjYSBsZW0gc2ljdWxh}
+    refreshsecret: ${JWT_REFRESH_SECRET:bmd1b2kgZGFuIG9uZyBjbyBjb24gY29uZyBraG9uZyBuZ3U}
     access-token-expire-seconds: 600
     refresh-token-expire-seconds: 604800
-
+#  base-url: ${BASE_URL:/api/v1}
   cookie:
     secure: false
     same-site: Lax
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/room-booking}
     username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD}
+    password: ${DB_PASSWORD:hieu}
   mail:
     host: smtp.gmail.com
     port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
+    username: ${MAIL_USERNAME:hieuahieua@gmail.com}
+    password: ${MAIL_PASSWORD:ngjq orda ehxy dbxi}
     properties:
       mail:
         smtp:

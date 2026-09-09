@@ -12,7 +12,7 @@ import com.app.backend.dtos.response.*;
 import com.app.backend.service.intf.RoomImageService;
 
 @RestController
-@RequestMapping("/api/v1/roomimages")
+@RequestMapping("/roomimages")
 @AllArgsConstructor
 public class RoomImageController {
     private final RoomImageServiceImpl service;

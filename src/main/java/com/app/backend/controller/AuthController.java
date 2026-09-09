@@ -1,5 +1,6 @@
 package com.app.backend.controller;
 
+import com.app.backend.config.AppProperties;
 import com.app.backend.dtos.request.LoginRequest;
 import com.app.backend.dtos.request.RegisterRequest;
 import com.app.backend.dtos.request.UserRequest;
@@ -19,11 +20,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.BindingResult;
 
 @RestController
-@RequestMapping("/api/v1/authen")
+@RequestMapping("/authen")
 @RequiredArgsConstructor
 public class AuthController {
     private final UserServiceImpl userService;
     private final AuthServicesImpl authServices;
+    private final AppProperties appProperties;
 
     @PostMapping("/login")
     public ResponseEntity<DataResponse<AuthResponse>> login(@Valid @RequestBody LoginRequest loginRequest,

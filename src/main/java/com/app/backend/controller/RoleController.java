@@ -13,7 +13,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/roles")
+@RequestMapping("/roles")
 @AllArgsConstructor
 public class RoleController {
     private final RoleServiceImpl service;

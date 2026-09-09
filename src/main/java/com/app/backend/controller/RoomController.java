@@ -16,7 +16,7 @@ import com.app.backend.dtos.response.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
-@RequestMapping("/api/v1/rooms")
+@RequestMapping("/rooms")
 @AllArgsConstructor
 public class RoomController {
     private final RoomServiceImpl service;

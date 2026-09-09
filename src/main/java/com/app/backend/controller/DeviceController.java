@@ -13,7 +13,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/devices")
+@RequestMapping("/devices")
 @AllArgsConstructor
 public class DeviceController {
     private final DeviceServiceImpl service;

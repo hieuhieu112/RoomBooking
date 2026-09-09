@@ -13,7 +13,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/deviceborrowdetails")
+@RequestMapping("/deviceborrowdetails")
 @AllArgsConstructor
 public class DeviceBorrowDetailController {
     private final DeviceBorrowDetailServiceImpl service;

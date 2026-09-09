@@ -3,6 +3,7 @@ package com.app.backend.config;
 
 import com.app.backend.constant.SecurityConstant;
 import com.app.backend.filter.JwtFilter;
+import com.app.backend.provider.SecurityEndpointProvider;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class WebSecurityConfig {
     private final JwtFilter jwtTokenFilter;
+
+    private final SecurityEndpointProvider securityEndpointProvider;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.cors(cors -> {})
@@ -29,11 +33,12 @@ public class WebSecurityConfig {
                 )
                 .authorizeHttpRequests(requests -> {
                     requests
-                            .requestMatchers(HttpMethod.POST, SecurityConstant.PUBLIC_ENDPOINTS)
+
+                            .requestMatchers(HttpMethod.POST, SecurityConstant.PUBLIC_ENDPOINTS)//securityEndpointProvider.getPublicEndpoints())
                             .permitAll()
                             .requestMatchers("/files/**").permitAll()
                             .requestMatchers(
-                                    "/api/v1/roomimages/**",
+                                    "/roomimages/**",
                                     "/",
                                     "/firebase-messaging-sw.js",
                                     "/index.html",

@@ -13,6 +13,8 @@ import org.springframework.context.annotation.Configuration;
 public class AppProperties {
     private Jwt jwt;
     private Cookie cookie;
+    private String apiPrefix;
+
 
     @Getter
     @Setter

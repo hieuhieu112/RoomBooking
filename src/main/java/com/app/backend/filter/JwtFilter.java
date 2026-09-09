@@ -1,8 +1,10 @@
 package com.app.backend.filter;
 
 
+import com.app.backend.config.AppProperties;
 import com.app.backend.constant.SecurityConstant;
 import com.app.backend.entity.User;
+import com.app.backend.provider.SecurityEndpointProvider;
 import com.app.backend.service.JwtService;
 import com.app.backend.utils.Constant;
 import io.jsonwebtoken.Claims;
@@ -37,6 +39,7 @@ import java.util.stream.Collectors;
 public class JwtFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
+    private final SecurityEndpointProvider securityEndpointProvider;
 
 
     @Override
@@ -108,7 +111,9 @@ public class JwtFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest request) {
 
         String path = request.getServletPath();
-
+//        return Arrays.stream(securityEndpointProvider.getPublicEndpoints())
+//                .anyMatch(path::matches);
         return Arrays.asList(SecurityConstant.PUBLIC_ENDPOINTS).contains(path);
+//        return Arrays.asList(securityEndpointProvider.getPublicEndpoints()).contains(path);
     }
 }

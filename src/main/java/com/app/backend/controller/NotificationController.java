@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/notification")
+@RequestMapping("/notification")
 @AllArgsConstructor
 public class NotificationController {
     private final NotificationServiceIml notificationServiceIml;

@@ -13,7 +13,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/managergroups")
+@RequestMapping("/managergroups")
 @AllArgsConstructor
 public class ManagerGroupController {
     private final ManagerGroupServiceImpl service;

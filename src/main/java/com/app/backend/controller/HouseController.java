@@ -14,7 +14,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/houses")
+@RequestMapping("/houses")
 @AllArgsConstructor
 public class HouseController {
     private final HouseServiceImpl service;

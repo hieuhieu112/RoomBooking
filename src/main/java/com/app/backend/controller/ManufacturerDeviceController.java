@@ -13,7 +13,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/manufacturerdevices")
+@RequestMapping("/manufacturerdevices")
 @AllArgsConstructor
 public class ManufacturerDeviceController {
     private final ManufacturerDeviceServiceImpl service;

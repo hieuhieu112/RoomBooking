@@ -13,7 +13,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 
 @RestController
-@RequestMapping("/api/v1/deviceincidents")
+@RequestMapping("/deviceincidents")
 @AllArgsConstructor
 public class DeviceIncidentController {
     private final DeviceIncidentServiceImpl service;

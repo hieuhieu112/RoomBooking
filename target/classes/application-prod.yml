@@ -1,8 +1,11 @@
 server:
-  port: 8080
-
+  port: ${APP_PORT:8080}
+  servlet:
+    context-path: /api/v1
 app:
   frontend-url: ${FRONTEND_URL}
+
+#  base-url: ${BASE_URL:/api/v1}
 
   jwt:
     accesssecret: ${JWT_ACCESS_SECRET}
@@ -11,6 +14,9 @@ app:
   cookie:
     secure: true
     same-site: Lax
+  redis:
+    host: ${REDIS_HOST:redis}
+    port: ${REDIS_PORT:6379}
 
 spring:
   datasource:
