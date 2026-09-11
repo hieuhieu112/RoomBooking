@@ -70,7 +70,7 @@ public class InitSystem implements ApplicationListener<ApplicationReadyEvent> {
         if (!exists) {
             User user = new User();
             user.setUsername(defaultUsername);
-            user.setPassword(passwordEncoder.encode("admin123")); // mật khẩu mặc định
+                user.setPassword(passwordEncoder.encode("admin123")); // mật khẩu mặc định
             user.setName("Quản trị viên");
             user.setEmail("hieuahieua@gmail.com");
             user.setStatus(Status.ACTIVE);

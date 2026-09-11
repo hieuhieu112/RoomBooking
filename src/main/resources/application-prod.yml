@@ -1,28 +1,31 @@
 server:
   port: ${APP_PORT:8080}
   servlet:
-    context-path: /api/v1
+    context-path: /rba/api/v1
 app:
-  frontend-url: ${FRONTEND_URL}
-
-#  base-url: ${BASE_URL:/api/v1}
-
+  frontend-url: ${FRONTEND_URL:http://localhost:8081}
   jwt:
     accesssecret: ${JWT_ACCESS_SECRET}
     refreshsecret: ${JWT_REFRESH_SECRET}
+    access-token-expire-seconds: 600
+    refresh-token-expire-seconds: 604800
 
   cookie:
     secure: true
     same-site: Lax
-  redis:
-    host: ${REDIS_HOST:redis}
-    port: ${REDIS_PORT:6379}
+#  redis:
+#    host: ${REDIS_HOST:redis}
+#    port: ${REDIS_PORT:6379}
 
 spring:
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
   datasource:
-    url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/room-booking}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:hieu}
 
   mail:
     host: smtp.gmail.com

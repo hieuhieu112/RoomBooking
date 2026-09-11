@@ -54,3 +54,20 @@ jobs:
     - name: Push image
       run: |
         docker push ghcr.io/hieuhieu112/rba-be:latest
+
+  deploy:
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+
+          script: |
+            cd /root/rba
+            docker-compose pull
+            docker-compose up -d
