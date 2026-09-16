@@ -49,11 +49,11 @@ jobs:
     - name: Build image
       run: |
         docker build \
-          -t ghcr.io/hieuhieu112/rba-be:latest \
+          -t ghcr.io/hieuhieu112/rba-be:${{ github.sha }} \
           .
     - name: Push image
       run: |
-        docker push ghcr.io/hieuhieu112/rba-be:latest
+        docker push ghcr.io/hieuhieu112/rba-be:${{ github.sha }}
 
   deploy:
     needs: docker
