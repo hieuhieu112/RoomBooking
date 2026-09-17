@@ -109,7 +109,7 @@ jobs:
   
             HEALTHY=false
   
-            for i in {1..12}; do
+            for i in {1..30}; do
             
             STATUS=$(docker inspect rba-be \
             --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' \
