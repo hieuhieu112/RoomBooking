@@ -9,5 +9,5 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/test")
 @AllArgsConstructor
 public class TestController {
-    private final RoomServiceImpl service;
+    private final RoomServiceImpl service;?
 }
