@@ -37,6 +37,7 @@ public class WebSecurityConfig {
                             .requestMatchers(HttpMethod.POST, SecurityConstant.PUBLIC_ENDPOINTS)//securityEndpointProvider.getPublicEndpoints())
                             .permitAll()
                             .requestMatchers("/files/**").permitAll()
+                            .requestMatchers("/actuator/health").permitAll()
                             .requestMatchers(
                                     "/roomimages/**",
                                     "/",
