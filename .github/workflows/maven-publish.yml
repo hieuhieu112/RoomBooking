@@ -68,7 +68,153 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
 
           script: |
+            set -e
+          
             cd /root/rba            
+            
+            NEW_IMAGE="ghcr.io/hieuhieu112/rba-be:${{ github.sha }}"
+            LKG_FILE=".last-known-good"
+  
+            echo "======================================"
+            echo "New image: $NEW_IMAGE"
+            echo "======================================"
+  
+            # -----------------------------------------
+            # 1. Đọc Last Known Good
+            # -----------------------------------------
+             if [ -s "$LKG_FILE" ]; then
+              LAST_KNOWN_GOOD=$(cat "$LKG_FILE")
+              echo "Last known good: $LAST_KNOWN_GOOD"
+            else
+            LAST_KNOWN_GOOD=""
+            echo "No last known good version found."
+            fi
+  
+            # -----------------------------------------
+            # 2. Deploy version mới
+            # -----------------------------------------
+  
+            sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=$NEW_IMAGE|" .env
+          
+            echo "Deploying $NEW_IMAGE..."
+  
+            docker-compose pull backend
+            docker-compose up -d backend
+  
+            # -----------------------------------------
+            # 3. Chờ health check
+            # -----------------------------------------
+  
+            echo "Waiting for backend health..."
+  
+            HEALTHY=false
+  
+            for i in {1..12}; do
+            
+            STATUS=$(docker inspect rba-be \
+            --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' \
+            2>/dev/null || echo "not-found")
+            
+            echo "Health status: $STATUS"
+            
+            if [ "$STATUS" = "healthy" ]; then
+            HEALTHY=true
+            break
+            fi
+            
+            if [ "$STATUS" = "unhealthy" ]; then
+            break
+            fi
+            
+            sleep 10
+            done
+  
+            # -----------------------------------------
+            # 4. Deploy thành công
+            # -----------------------------------------
+  
+            if [ "$HEALTHY" = true ]; then
+            
+            echo "======================================"
+            echo "Deployment successful!"
+            echo "Version: $NEW_IMAGE"
+            echo "======================================"
+            
+            echo "$NEW_IMAGE" > "$LKG_FILE"
+            
+            exit 0
+            fi
+  
+            # -----------------------------------------
+            # 5. Deploy thất bại
+            # -----------------------------------------
+  
+            echo "======================================"
+            echo "Deployment failed!"
+            echo "======================================"
+  
+            # Không có version tốt để rollback
+            if [ -z "$LAST_KNOWN_GOOD" ]; then
+            echo "No last known good version available."
+            echo "Rollback cannot be performed."
+            
+            exit 1
+            fi
+  
+            # -----------------------------------------
+            # 6. Rollback
+            # -----------------------------------------
+  
+            echo "Rolling back to:"
+            echo "$LAST_KNOWN_GOOD"
+  
+            sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=$LAST_KNOWN_GOOD|" .env
+  
+            docker-compose pull backend
+            docker-compose up -d backend
+  
+            # -----------------------------------------
+            # 7. Kiểm tra version rollback
+            # -----------------------------------------
+  
+            echo "Waiting for rollback health..."
+  
+            ROLLBACK_HEALTHY=false
+  
+            for i in {1..12}; do
+            
+            STATUS=$(docker inspect rba-be \
+            --format='{{if .State.Health}}{{.State.Health.Status}}{{else}}no-healthcheck{{end}}' \
+            2>/dev/null || echo "not-found")
+            
+            echo "Rollback health status: $STATUS"
+            
+            if [ "$STATUS" = "healthy" ]; then
+            ROLLBACK_HEALTHY=true
+            break
+            fi
+            
+            sleep 10
+            done
+  
+            if [ "$ROLLBACK_HEALTHY" = true ]; then
+            echo "======================================"
+            echo "Rollback successful!"
+            echo "Running: $LAST_KNOWN_GOOD"
+            echo "======================================"
+            
+            exit 1
+            fi
+  
+            echo "======================================"
+            echo "CRITICAL: Rollback also failed!"
+            echo "Version: $LAST_KNOWN_GOOD"
+            echo "======================================"
+  
+            exit 1
+            
+            
+            
             sed -i "s|^BACKEND_IMAGE=.*|BACKEND_IMAGE=ghcr.io/hieuhieu112/rba-be:${{ github.sha }}|" .env
             docker-compose pull
             docker-compose up -d
