@@ -123,7 +123,18 @@ jobs:
             fi
             
             if [ "$STATUS" = "unhealthy" ]; then
-            break
+              echo "======================================"
+              echo "Backend became unhealthy"
+              echo "======================================"
+          
+              echo "----- Container logs -----"
+              docker logs --tail 200 rba-be
+          
+              echo "----- Healthcheck logs -----"
+              docker inspect rba-be \
+              --format '{{range .State.Health.Log}}{{.ExitCode}} | {{.Output}}{{println}}{{end}}'
+          
+              break
             fi
             
             sleep 10
