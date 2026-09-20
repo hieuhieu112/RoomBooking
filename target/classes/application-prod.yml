@@ -2,6 +2,11 @@ server:
   port: ${APP_PORT:8080}
   servlet:
     context-path: /rba/api/v1
+  flyway:
+    enabled: true
+    validate-on-migrate: true
+    baseline-on-migrate: true
+    baseline-version: 0
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:8081}
   jwt:
