@@ -5,6 +5,7 @@ import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.*;
 import com.app.backend.entity.Booking;
 import com.app.backend.entity.User;
+import org.springframework.data.domain.Page;
 
 public interface UserService {
     UserResponse mapToResponse(User entity);
@@ -13,6 +14,7 @@ public interface UserService {
     User getByEmail(String email);
     User getByUsername(String username);
     List<User> getAll();
+    Page<User> getByPage(int page, int size);
     User update(Integer id, UserUpdateRequest request);
     void delete(Integer id);
 

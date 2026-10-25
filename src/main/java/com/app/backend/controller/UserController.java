@@ -3,6 +3,7 @@ package com.app.backend.controller;
 import java.util.List;
 
 import com.app.backend.service.impl.UserServiceImpl;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import jakarta.validation.Valid;
@@ -57,6 +58,16 @@ public class UserController {
     public ResponseEntity<DataResponse<List<UserResponse>>> getAll() {
         DataResponse<List<UserResponse>> response = DataResponse.<List<UserResponse>>builder()
                 .data(service.getAll().stream().map(service::mapToResponse).toList())
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/pagin")
+    public ResponseEntity<DataResponse<Page<UserResponse>>> getAllPagin(@RequestParam int page, @RequestParam int size) {
+        DataResponse<Page<UserResponse>> response = DataResponse.<Page<UserResponse>>builder()
+                .data(service.toResponsePage(service.getByPage(page,size)))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();

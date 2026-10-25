@@ -9,6 +9,10 @@ import com.app.backend.entity.enumm.Status;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,6 +96,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> getAll() {
         return repo.findAll();
+    }
+
+    @Override
+    public Page<User> getByPage(int page, int size) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("id").descending()
+        );
+
+        return repo.findAll(pageable);
+//        long offset = (page-1) * size;
+//
+//        return repo.findAddByPage(offset,size);
+    }
+
+    public Page<UserResponse> toResponsePage(Page<User> userEntity) {
+        return userEntity.map(this::mapToResponse);
     }
 
     @Override
