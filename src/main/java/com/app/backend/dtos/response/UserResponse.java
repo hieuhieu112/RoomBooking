@@ -20,7 +20,7 @@ public class UserResponse {
 //    private String pass;
     private String status;
     private String username;
-//    private Integer managerGroupId;
+    private Integer managerGroupId;
     private List<String> roles;
 
     public static UserResponse convertFromEntity(User user){

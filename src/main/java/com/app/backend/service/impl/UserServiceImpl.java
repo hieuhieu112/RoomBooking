@@ -41,16 +41,34 @@ public class UserServiceImpl implements UserService {
 //        resp.setPass(entity.getPassword());
         resp.setStatus(entity.getStatus().name());
         resp.setUsername(entity.getUsername());
-//        resp.setManagerGroupId(entity.getManagerGroup().getId());
+        resp.setManagerGroupId(entity.getManagerGroup() == null ? null : entity.getManagerGroup().getId());
         return resp;
     }
 
     @Override
-    public User create(UserRequest request) {
-        return createSaveDB(request, null);
+    public User create(UserRequest request, Status s) {
+        return createSaveDB(request, s);
     }
 
-    public User createSaveDB(UserRequest request, Status status){
+    private User converFromUserRequest(User entity,UserRequest request){
+        entity.setName(request.getName());
+        entity.setEmail(request.getEmail());
+        entity.setIncidentCount(request.getIncidentCount());
+        entity.setPassword(passwordEncoder.encode(request.getPass()));
+        entity.setStatus(request.getStatus());
+        entity.setUsername(request.getUsername());
+//        ManagerGroup managerGroup =  managerGroupService.getById(request.getManagerGroupId());
+
+//        entity.setManagerGroup(managerGroup);
+
+        entity.setRoles(request.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet()));
+
+        return entity;
+    };
+
+    public User createSaveDB(UserRequest request, Status s){
+
+        if (s != null) request.setStatus(s);
         if(existsByEmail(request.getEmail())){
             throw  new CommonException(ErrorCode.USER_EMAIL_EXISTS);
         }
@@ -59,22 +77,8 @@ public class UserServiceImpl implements UserService {
             throw new CommonException(ErrorCode.USER_USERNAME_EXISTS);
         }
 
-        User entity = new User();
-        entity.setName(request.getName());
-        entity.setEmail(request.getEmail());
-        entity.setIncidentCount(request.getIncidentCount());
-        entity.setPassword(passwordEncoder.encode(request.getPass()));
-        entity.setStatus(
-                status != null ? status : request.getStatus()
-        );
-        entity.setUsername(request.getUsername());
-//        ManagerGroup managerGroup =  managerGroupService.getById(request.getManagerGroupId());
 
-//        entity.setManagerGroup(managerGroup);
-
-        entity.setRoles(request.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet()));
-        entity = save(entity);
-        return entity;
+        return save(converFromUserRequest(new User(), request));
     }
 
     @Override
@@ -121,12 +125,14 @@ public class UserServiceImpl implements UserService {
 
         User entity = getById(id);
         entity.setName(request.getName());
+        entity.setStatus(request.getStatus());
         if(!entity.getEmail().equals(request.getEmail())){
             entity.setEmail(request.getEmail());
         }
+        entity.setRoles(request.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet()));
 
 //        entity.setIncidentCount(request.getIncidentCount());
-//        entity.setPassword(request.getPass());
+        if(request.getPass() != null) entity.setPassword(passwordEncoder.encode(request.getPass()));
 //        entity.setUsername(request.getUsername());
 //        ManagerGroup managerGroup = managerGroupService.getById(request.getManagerGroupId());
 //        entity.setManagerGroup(managerGroup);

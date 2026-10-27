@@ -30,14 +30,21 @@ public class RoleServiceImpl implements RoleService {
         RoleResponse resp = new RoleResponse();
         resp.setId(entity.getId());
         resp.setName(entity.getName());
+        resp.setIsAdmin(entity.getIsAdmin());
+        resp.setIsManager(entity.getIsManager());
         return resp;
+    }
+
+    private Role convertFromRequest(Role entity, RoleRequest request){
+        entity.setName(request.getName());
+        entity.setIsAdmin(request.getIsAdmin());
+        entity.setIsManager(request.getIsManager());
+        return  entity;
     }
 
     @Override
     public Role create(RoleRequest request) {
-        Role entity = new Role();
-        entity.setName(request.getName());
-        entity = repo.save(entity);
+        Role entity = repo.save(convertFromRequest(new Role(), request));
         evictTopicCache(null);
         return (entity);
     }
@@ -81,9 +88,10 @@ public class RoleServiceImpl implements RoleService {
     @Override
     public Role update(Integer id, RoleRequest request) {
         Role entity = repo.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
-        entity.setName(request.getName());
-        entity = repo.save(entity);
+
+        entity = repo.save(convertFromRequest(entity, request));
         evictTopicCache(entity.getId());
+        evictTopicCacheName(entity.getName());
         return (entity);
     }
 
@@ -99,8 +107,22 @@ public class RoleServiceImpl implements RoleService {
         }
     }
 
+    private void evictTopicCacheName(String topicName) {
+
+        try {
+            cacheService.evict(RedisKey.roleAll());
+
+            if (topicName != null) {
+                cacheService.evict(RedisKey.roleByName(topicName));
+            }
+        } catch (Exception ignored) {
+        }
+    }
+
     @Override
     public void delete(Integer id) {
+        Role r =getById(id);
         evictTopicCache(id);
+        evictTopicCacheName(r.getName());
         repo.deleteById(id); }
 }

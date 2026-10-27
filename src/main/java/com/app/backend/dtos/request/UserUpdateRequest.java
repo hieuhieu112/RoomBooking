@@ -1,12 +1,16 @@
 package com.app.backend.dtos.request;
 
+import com.app.backend.entity.enumm.Status;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.util.List;
 
 @Getter
 @Setter
@@ -22,6 +26,12 @@ public class UserUpdateRequest {
     @Email
     private String email;
 
-    private String status;
+    private Status status;
     private Integer managerGroupId;
+
+    // ===========field k doi
+    private Integer incidentCount=0;
+    private String pass;
+    private String username;
+    private List<String> roles;
 }

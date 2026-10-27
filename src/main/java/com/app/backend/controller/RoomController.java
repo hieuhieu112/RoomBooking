@@ -1,9 +1,12 @@
 package com.app.backend.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import com.app.backend.entity.Room;
 import com.app.backend.service.impl.RoomServiceImpl;
+import org.springframework.data.domain.Page;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -47,10 +50,27 @@ public class RoomController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/available")
+    public ResponseEntity<DataResponse<Page<RoomResponse>>> getAvailableRoom(
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime start,
+            @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss") LocalDateTime end,
+            @RequestParam int page, @RequestParam int size
+    ) {
+
+        DataResponse<Page<RoomResponse>> response = DataResponse.<Page<RoomResponse>>builder()
+                .data(service.roomResponsePage(service.getRoomAvaiable(start, end, page, size)))
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping
-    public ResponseEntity<DataResponse<List<RoomResponse>>> getAll() {
-        DataResponse<List<RoomResponse>> response = DataResponse.<List<RoomResponse>>builder()
-                .data(service.getAll().stream().map(service::mapToResponse).toList())
+    public ResponseEntity<DataResponse<Page<RoomResponse>>> getAll(
+            @RequestParam int page,
+            @RequestParam int size) {
+        DataResponse<Page<RoomResponse>> response = DataResponse.<Page<RoomResponse>>builder()
+                .data(service.roomResponsePage(service.getAllPagin(page, size)))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();
@@ -58,15 +78,17 @@ public class RoomController {
     }
 
     @GetMapping(value = "/filter")
-    public ResponseEntity<DataResponse<List<RoomResponse>>> getByFilter(
-            @RequestParam(required = false) String search,
+    public ResponseEntity<DataResponse<Page<RoomResponse>>> getByFilter(
+            @RequestParam(required = false, defaultValue = "") String search,
             @RequestParam(required = false) Integer houseId,
-            @RequestParam(required = false) Integer roomTypeId
+            @RequestParam(required = false) Integer roomTypeId,
+            @RequestParam int page,
+            @RequestParam int size
     ) {
-        List<Room> a = service.getAllByFilter(search, houseId, roomTypeId);
-        DataResponse<List<RoomResponse>> response = DataResponse.<List<RoomResponse>>builder()
+        Page<Room> a = service.getAllByFilter(search, houseId, roomTypeId, page, size);
+        DataResponse<Page<RoomResponse>> response = DataResponse.<Page<RoomResponse>>builder()
 
-                .data(a.stream().map(service::mapToResponse).toList())
+                .data(a.map(service::mapToResponse))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();
@@ -77,7 +99,7 @@ public class RoomController {
     public ResponseEntity<DataResponse<RoomResponse>> update(
             @PathVariable Integer id,
             @Valid @ModelAttribute RoomRequest request,
-            @RequestPart("images") List<MultipartFile> images,
+            @RequestPart(value = "images", required = false) List<MultipartFile> images,
             BindingResult result
     ) {
         ValidRequestUtil.validateRequest(result);

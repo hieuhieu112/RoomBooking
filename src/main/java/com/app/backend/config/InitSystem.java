@@ -33,7 +33,8 @@ public class InitSystem implements ApplicationListener<ApplicationReadyEvent> {
         boolean existsRole = roleRepository.existsByName(roleAdmin);
         Role role = new Role();
         if (!existsRole) {
-
+            role.setIsAdmin(true);
+            role.setIsManager(true);
             role.setName(roleAdmin);
 
             role = roleRepository.save(role);

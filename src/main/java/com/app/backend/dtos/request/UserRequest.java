@@ -20,7 +20,9 @@ public class UserRequest {
     @NotBlank(message = "Email không được để trống")
     @Email
     private String email;
-    private Integer incidentCount;
+
+
+    private Integer incidentCount=0;
 
     @NotBlank(message = "Mat khau không được để trống")
     @Size(min = 6, message = "Mat khau phai dai hon 6 ky tu")

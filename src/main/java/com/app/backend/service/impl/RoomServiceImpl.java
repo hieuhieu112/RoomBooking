@@ -1,14 +1,20 @@
 package com.app.backend.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.app.backend.entity.ManagerGroup;
+import com.app.backend.entity.enumm.RoomStatus;
 import com.app.backend.redis.NotificationPublisher;
 import com.app.backend.entity.RoomImage;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.app.backend.dtos.request.*;
@@ -58,6 +64,7 @@ public class RoomServiceImpl implements RoomService {
 
         entity.setRoomType(roomTypeService.getById(request.getRoomTypeId()));
         entity.setHouse(houseService.getById(request.getHouseId()));
+        entity.setStatus(RoomStatus.ACTIVE);
         //entity.setImage(new RoomImage() request.getImage());
 //        entity.setManagerGroup(managerGroupService.getById(request.getManagerGroupId()));
 
@@ -78,14 +85,31 @@ public class RoomServiceImpl implements RoomService {
         return repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.ROOM_NOT_FOUND));
     }
 
-    @Override
-    public List<Room> getAll() {
-        return repo.findAll();
+    public Page<Room> getRoomAvaiable(LocalDateTime start, LocalDateTime end, int page, int size) {
+        Pageable p = PageRequest.of(page, size, Sort.by("id").descending());
+        String time = start.toString();
+        return repo.findRoomAvalable(start.toString(), end.toString(), p);
     }
 
     @Override
-    public List<Room> getAllByFilter(String search, Integer houseId,Integer roomTypeId) {
-        return repo.getAllByFilter(search, houseId, roomTypeId);
+    public Page<Room> getAllPagin(int page, int size) {
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by("id").descending()
+        );
+        return repo.findAll(pageable);
+    }
+
+    public Page<RoomResponse> roomResponsePage(Page<Room> roomEntity){
+        return roomEntity.map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<Room> getAllByFilter(String search, Integer houseId,Integer roomTypeId, int page, int size) {
+        Pageable pageable  = PageRequest.of(page, size,
+                Sort.by("id").descending());
+        return repo.getAllByFilter(search, houseId, roomTypeId, pageable);
     }
 
     @Override
@@ -99,9 +123,12 @@ public class RoomServiceImpl implements RoomService {
         //entity.setImage(new RoomImage() request.getImage());
 //        entity.setManagerGroup(managerGroupService.getById(request.getManagerGroupId()));
         List<RoomImage> roomImages = roomImageService.getByRoomId(id);
-        for(int i = 0; i< images.size(); i++){
-            roomImages.add(roomImageService.generateImage(images.get(i), entity, i));
+        if(images!=null){
+            for(int i = 0;  images.isEmpty() || i< images.size(); i++){
+                roomImages.add(roomImageService.generateImage(images.get(i), entity, i));
+            }
         }
+
 
         entity.setImages(roomImages);
         entity = repo.save(entity);

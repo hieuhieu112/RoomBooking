@@ -14,4 +14,8 @@ public class Role {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
+
+
+    private Boolean isManager = false;
+    private Boolean isAdmin = false;
 }

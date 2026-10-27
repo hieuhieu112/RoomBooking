@@ -41,6 +41,10 @@ public class JwtService {
                 .claim("roles", user.getRoles().stream().map(
                         Role::getName
                 ).toList())
+                .claim("isManager", user.getRoles().stream()
+                        .anyMatch(role -> Boolean.TRUE.equals(role.getIsManager())))
+                .claim("isAdmin",user.getRoles().stream().
+                        anyMatch(role -> Boolean.TRUE.equals(role.getIsAdmin())))
                 .claim("type", type)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + expireSession * 1000))

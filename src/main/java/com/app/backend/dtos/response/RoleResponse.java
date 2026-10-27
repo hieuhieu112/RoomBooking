@@ -9,4 +9,6 @@ import lombok.*;
 public class RoleResponse {
     private Integer id;
     private String name;
+    private Boolean isManager;
+    private Boolean isAdmin;
 }

@@ -12,4 +12,6 @@ public class RoleRequest {
 
     @NotBlank(message = "Ten không được để trống")
     private String name;
+    private Boolean isManager;
+    private Boolean isAdmin;
 }
