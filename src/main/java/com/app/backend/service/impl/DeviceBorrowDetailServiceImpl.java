@@ -1,7 +1,9 @@
 package com.app.backend.service.impl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import com.app.backend.dtos.internal.DeviceQuantityAvailable;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
 import lombok.AllArgsConstructor;
@@ -18,15 +20,15 @@ import com.app.backend.service.intf.DeviceBorrowDetailService;
 @AllArgsConstructor
 public class DeviceBorrowDetailServiceImpl implements DeviceBorrowDetailService {
     private final DeviceBorrowDetailRepository repo;
-    private final BookingServiceImpl bookingService;
     private final DeviceServiceImpl deviceService;
 
 
     public DeviceBorrowDetailResponse mapToResponse(DeviceBorrowDetail entity) {
         DeviceBorrowDetailResponse resp = new DeviceBorrowDetailResponse();
-//        resp.setId(entity.getId());
+        resp.setId(entity.getId());
         resp.setBookingId(entity.getBooking().getId());
         resp.setDeviceId(entity.getDevice().getId());
+        resp.setQuantity(entity.getQuantity());
 //        resp.setNote(entity.getNote());
         return resp;
     }
@@ -47,9 +49,14 @@ public class DeviceBorrowDetailServiceImpl implements DeviceBorrowDetailService 
     }
 
     @Override
-    public List<DeviceBorrowDetail> getAll() {
-        return repo.findAll();
+    public List<DeviceBorrowDetail> getAllByBooking(Integer bookingId) {
+        return repo.findAddByBookingId(bookingId);
     }
+
+//    @Override
+//    public List<DeviceBorrowDetail> getAll() {
+//        return repo.findAll();
+//    }
 
     @Override
     public DeviceBorrowDetail update(Long id, DeviceBorrowDetailRequest request) {
@@ -63,4 +70,9 @@ public class DeviceBorrowDetailServiceImpl implements DeviceBorrowDetailService 
 
     @Override
     public void delete(Long id) { repo.deleteById(id); }
+
+    @Override
+    public List<DeviceQuantityAvailable> getAllQuantityAvailable(LocalDateTime startTime, LocalDateTime endTime) {
+        return List.of();
+    }
 }

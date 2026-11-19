@@ -1,15 +1,15 @@
 package com.app.backend.controller;
 
 import com.app.backend.config.AppProperties;
-import com.app.backend.dtos.request.LoginRequest;
-import com.app.backend.dtos.request.RegisterRequest;
-import com.app.backend.dtos.request.UserRequest;
+import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.AuthResponse;
 import com.app.backend.dtos.response.DataResponse;
 import com.app.backend.dtos.response.StatusRes;
 import com.app.backend.dtos.response.UserResponse;
 import com.app.backend.service.impl.AuthServicesImpl;
 import com.app.backend.service.impl.UserServiceImpl;
+import com.app.backend.service.intf.AuthServices;
+import com.app.backend.service.intf.UserService;
 import com.app.backend.utils.ValidRequestUtil;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -23,8 +23,8 @@ import org.springframework.validation.BindingResult;
 @RequestMapping("/authen")
 @RequiredArgsConstructor
 public class AuthController {
-    private final UserServiceImpl userService;
-    private final AuthServicesImpl authServices;
+    private final UserService userService;
+    private final AuthServices authServices;
     private final AppProperties appProperties;
 
     @PostMapping("/login")
@@ -75,9 +75,23 @@ public class AuthController {
     }
 
 
+    @PatchMapping("/change_pass")
+    public ResponseEntity<DataResponse<Void>> changPasswordMyAccount(
+            @RequestBody ChangePasswordRequest request, BindingResult result
+    ){
+        ValidRequestUtil.validateRequest(result);
+        authServices.changePasswordMyAccount(request);
+        return ResponseEntity.ok(DataResponse.<Void>builder()
+                .statusCode(StatusRes.SUCCESS)
+                .message("succcess")
+                .build()
+        );
+
+    }
+
     @PostMapping(value = "/register")
     public ResponseEntity<DataResponse<UserResponse>> register(
-            @Valid @RequestBody UserRequest request, BindingResult result
+            @Valid @RequestBody UserRegisterRequest request, BindingResult result
     ){
         ValidRequestUtil.validateRequest(result);
         DataResponse<UserResponse> response = DataResponse.<UserResponse>builder()

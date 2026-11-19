@@ -2,9 +2,8 @@ package com.app.backend.service.impl;
 
 import com.app.backend.config.AppProperties;
 import com.app.backend.constant.RedisKey;
-import com.app.backend.dtos.request.LoginRequest;
-import com.app.backend.dtos.request.RegisterRequest;
-import com.app.backend.dtos.request.UserRequest;
+import com.app.backend.dtos.internal.AuthContext;
+import com.app.backend.dtos.request.*;
 import com.app.backend.dtos.response.AuthResponse;
 import com.app.backend.dtos.response.UserResponse;
 import com.app.backend.entity.ManagerGroup;
@@ -18,36 +17,38 @@ import com.app.backend.service.CacheService;
 import com.app.backend.service.JwtService;
 import com.app.backend.service.RedisService;
 import com.app.backend.service.intf.AuthServices;
+import com.app.backend.service.intf.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.apache.catalina.security.SecurityUtil;
+import org.apache.poi.hpsf.GUID;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.apache.commons.codec.digest.DigestUtils;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServicesImpl implements AuthServices {
-    private final UserServiceImpl userService;
+    private final UserService userService;
     private final AppProperties appProperties;
 
     private final JwtService jwtService;
     private final EmailServiceImpl emailService;
 
+    private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final CacheService cacheService;
 
@@ -67,11 +68,12 @@ public class AuthServicesImpl implements AuthServices {
             User user = (User) auth.getPrincipal();
 
             user.validStatus();
-            String accessToken = jwtService.generateAccesstoken(user);
-            String refreshToken = jwtService.generateRefreshToken(user);
+            String sid = UUID.randomUUID().toString();
+            String accessToken = jwtService.generateAccesstoken(user, sid);
+            String refreshToken = jwtService.generateRefreshToken(user, sid);
             cacheService.setCache(
-                    RedisKey.refreshTokenTypeById(user.getId()),
-                    refreshToken,
+                    RedisKey.refreshTokenTypeById(user.getId(), user.getAuthVersion(), sid),
+                    DigestUtils.sha256Hex(refreshToken),
                     Duration.ofSeconds(appProperties.getJwt().getRefreshTokenExpireSeconds())//RT_CACHE_TTL
             );
 
@@ -84,7 +86,6 @@ public class AuthServicesImpl implements AuthServices {
                     .build();
             response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-            System.out.println(cookie.toString());
             return AuthResponse.builder()
                     .accessToken(accessToken)
                     .user(UserResponse.convertFromEntity(user))
@@ -106,8 +107,13 @@ public class AuthServicesImpl implements AuthServices {
     }
 
     @Override
-    public User register(UserRequest request) {
-        User u  = userService.createSaveDB(request, Status.LOCKED);
+    public User register(UserRegisterRequest request) {
+        List<String> s = new ArrayList<String>();
+        s.add("STUDENT");
+        UserRequest userRequest = new UserRequest(request.getName(), request.getEmail(),
+                0, request.getPass(), Status.LOCKED, request.getUsername(),
+                null, s);
+        User u  = userService.createSaveDB(userRequest, Status.LOCKED);
         String otp = String.format("%06d", new Random().nextInt(999999));
 
         cacheService.setCache(
@@ -162,9 +168,48 @@ public class AuthServicesImpl implements AuthServices {
         return u;
     }
 
+//    @Override
+//    public void changePassword(String username, String newPassword) {
+//        cacheService.evict(RedisKey.refreshTokenTypeById(AuthContextService.getContext().getUserId()));
+//    }
+
     @Override
-    public void changePassword(String username, String newPassword) {
-        cacheService.evict(RedisKey.refreshTokenTypeById(AuthContextService.getContext().getUserId()));
+    public void changePasswordMyAccount(ChangePasswordRequest request){
+        AuthContext context =  AuthContextService.getContext();
+
+        User userEntiy = userService.getById(context.getUserId());
+
+        if(passwordEncoder.matches(request.getOldPass(), userEntiy.getPassword())){
+            userService.changePass(userEntiy,request.getNewPass());
+        }
+        else {
+            throw new CommonException(ErrorCode.AUTH_WRONG);
+        }
+//        String sid = UUID.randomUUID().toString();
+
+
+//        List<String> roles = userEntiy.getRoles().stream().map(Role::getName).toList();
+
+
+//        User user = new User();
+//        user.setId(userEntiy.getId());
+//        user.setUsername(userEntiy.getUsername());
+//        user.setRoles(
+//                roles.stream()
+//                        .map(roleName -> {
+//                            Role role = new Role();
+//                            role.setName(roleName);
+//                            return role;
+//                        })
+//                        .collect(Collectors.toSet())
+//        );
+
+//        String newAT = jwtService.generateAccesstoken(userEntiy,sid);
+
+//        return AuthResponse.builder()
+//                .accessToken(newAT)
+//                .expiresIn(appProperties.getJwt().getAccessTokenExpireSeconds())
+//                .build();
     }
 
     @Override
@@ -174,12 +219,18 @@ public class AuthServicesImpl implements AuthServices {
 
     @Override
     public AuthResponse logout(HttpServletResponse response) {
-        cacheService.evict(RedisKey.refreshTokenTypeById(AuthContextService.getContext().getUserId()));
+        User userEntity = userService.getById(AuthContextService.getContext().getUserId());
+
+
+        cacheService.evict(RedisKey.refreshTokenTypeById(userEntity.getId(),
+                AuthContextService.getContext().getAuthVersion(),
+                AuthContextService.getContext().getSid()
+        ));
         ResponseCookie cookie = ResponseCookie.from("rf-tk", null)
                 .httpOnly(true)
                 .secure(appProperties.getCookie().isSecure())
-                .path("/api/v1/authen/refresh")
-                .maxAge(appProperties.getJwt().getRefreshTokenExpireSeconds())
+                .path("/rba/api/v1/authen/refresh")
+                .maxAge(0)
                 .sameSite(appProperties.getCookie().getSameSite())
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
@@ -194,42 +245,46 @@ public class AuthServicesImpl implements AuthServices {
 
     @Override
     public AuthResponse refresh(String refreshToken, HttpServletResponse response) {
+        jwtService.validRefreshTokenExpired(refreshToken);
 
         Claims claims = jwtService.parseRefreshToken(refreshToken);
+        Integer userId = jwtService.extractUserIdByClaims(claims);
+        String sid = jwtService.extractSidByClaims(claims);
+        Integer authVersion = jwtService.extractAuthVersionByClaims(claims);
+
+        User userEntiy = userService.getById(userId);
+
+        userEntiy.validStatus();
 
 
-        String username = claims.get("username", String.class);
-        Integer userId = claims.get("userId", Integer.class);
-        List<String> roles = claims.get("roles", List.class);
-
-        if(!Objects.equals(refreshToken, cacheService.getCache(RedisKey.refreshTokenTypeById(userId), String.class))) {
+        if(
+                !Objects.equals(DigestUtils.sha256Hex(refreshToken), cacheService.getCache(RedisKey.refreshTokenTypeById(userId, authVersion, sid), String.class))
+                || !Objects.equals(userEntiy.getAuthVersion(), authVersion)
+        ) {
             throw new CommonException(ErrorCode.AUTH_RESET_TOKEN_NOTMATCH);
         }
 
-        long ttl = jwtService.getRemainingTime(claims);
-        if (ttl <= 0) {
-            throw new CommonException(ErrorCode.AUTH_TOKEN_EXPIRED);
-        }
+//        List<String> roles = userEntiy.getRoles().stream().map(Role::getName).toList();
+//        User user = new User();
+//        user.setId(userId);
+//
+//        user.setUsername(user.getUsername());
+//        user.setRoles(
+//                roles.stream()
+//                        .map(roleName -> {
+//                            Role role = new Role();
+//                            role.setName(roleName);
+//                            return role;
+//                        })
+//                        .collect(Collectors.toSet())
+//        );
 
-        User user = new User();
-        user.setId(userId);
-        user.setUsername(username);
-        user.setRoles(
-                roles.stream()
-                        .map(roleName -> {
-                            Role role = new Role();
-                            role.setName(roleName);
-                            return role;
-                        })
-                        .collect(Collectors.toSet())
-        );
+        String newAT = jwtService.generateAccesstoken(userEntiy,sid);
 
-        String newAT = jwtService.generateAccesstoken(user);
-
-        String newRT = jwtService.generateRefreshToken(user);
+        String newRT = jwtService.generateRefreshToken(userEntiy, sid);
         cacheService.setCache(
-                RedisKey.refreshTokenTypeById(user.getId()),
-                newRT,
+                RedisKey.refreshTokenTypeById(userEntiy.getId(), authVersion, sid),
+                DigestUtils.sha256Hex(newRT),
                 Duration.ofSeconds(appProperties.getJwt().getRefreshTokenExpireSeconds())//RT_CACHE_TTL
         );
         ResponseCookie cookie = ResponseCookie.from("rf-tk", newRT)
@@ -267,6 +322,7 @@ public class AuthServicesImpl implements AuthServices {
         } catch (Exception ignored) {
         }
     }
+
 
     private String hash(String token) {
         return DigestUtils.sha256Hex(token);

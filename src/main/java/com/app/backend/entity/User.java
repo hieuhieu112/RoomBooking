@@ -36,6 +36,10 @@ public class User extends BaseEntity implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
+    @Builder.Default
+    @Column(name = "auth_version", nullable = false)
+    private Integer authVersion = 0;
+
     @Column(nullable = false, name = "pass")
     private String password;
 
@@ -111,5 +115,15 @@ public class User extends BaseEntity implements UserDetails {
     @Override
     public boolean isEnabled() {
         return !status.equals(Status.INACTIVE);
+    }
+
+    public boolean isAdmin() {
+        return roles.stream()
+                .anyMatch(role -> Boolean.TRUE.equals(role.getIsAdmin()));
+    }
+
+    public boolean isManager() {
+        return roles.stream()
+                .anyMatch(role -> Boolean.TRUE.equals(role.getIsManager()));
     }
 }

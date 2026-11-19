@@ -30,16 +30,6 @@ public class UserController {
         return ResponseEntity.ok(response);
     }
 
-//    @PostMapping("/active")
-//    public ResponseEntity<DataResponse<UserResponse>> active() {
-//        DataResponse<UserResponse> response = DataResponse.<UserResponse>builder()
-//                .data(service.mapToResponse(service.create(request)))
-//                .statusCode(StatusRes.SUCCESS)
-//                .message("SUCCESS")
-//                .build();
-//        return ResponseEntity.ok(response);
-//    }
-
     @GetMapping("/{id}")
     public ResponseEntity<DataResponse<UserResponse>> getById(@PathVariable Integer id) {
         var res = service.getById(id);
@@ -54,15 +44,15 @@ public class UserController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping
-    public ResponseEntity<DataResponse<List<UserResponse>>> getAll() {
-        DataResponse<List<UserResponse>> response = DataResponse.<List<UserResponse>>builder()
-                .data(service.getAll().stream().map(service::mapToResponse).toList())
-                .statusCode(StatusRes.SUCCESS)
-                .message("SUCCESS")
-                .build();
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping
+//    public ResponseEntity<DataResponse<List<UserResponse>>> getAll() {
+//        DataResponse<List<UserResponse>> response = DataResponse.<List<UserResponse>>builder()
+//                .data(service.getAll().stream().map(service::mapToResponse).toList())
+//                .statusCode(StatusRes.SUCCESS)
+//                .message("SUCCESS")
+//                .build();
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping("/pagin")
     public ResponseEntity<DataResponse<Page<UserResponse>>> getAllPagin(@RequestParam int page, @RequestParam int size) {
@@ -97,4 +87,16 @@ public class UserController {
                 .build();
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/my_account")
+    public ResponseEntity<DataResponse<Void>> updateMyAccount(@RequestBody UserUpdateRequest request){
+        service.updateMyAccount(request);
+        return ResponseEntity.ok(DataResponse.<Void>builder()
+                .statusCode(StatusRes.SUCCESS)
+                .message("succcess")
+                .build()
+        );
+
+    }
+
 }

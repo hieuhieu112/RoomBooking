@@ -1,0 +1,8 @@
+package com.app.backend.dtos.request;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public record AdminResetPasswordRequest(
+        @NotBlank @Size(min = 6, max = 72) String newPass) {
+}

@@ -2,10 +2,18 @@ package com.app.backend.filter;
 
 
 import com.app.backend.config.AppProperties;
+import com.app.backend.constant.ManagerPathConstant;
+import com.app.backend.constant.RedisKey;
 import com.app.backend.constant.SecurityConstant;
+import com.app.backend.constant.UserPathConstant;
+import com.app.backend.dtos.internal.AuthDetails;
 import com.app.backend.entity.User;
+import com.app.backend.exception.CommonException;
+import com.app.backend.exception.ErrorCode;
 import com.app.backend.provider.SecurityEndpointProvider;
+import com.app.backend.service.CacheService;
 import com.app.backend.service.JwtService;
+import com.app.backend.service.intf.UserService;
 import com.app.backend.utils.Constant;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -17,6 +25,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -30,6 +39,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -39,7 +49,9 @@ import java.util.stream.Collectors;
 public class JwtFilter extends OncePerRequestFilter {
     private final UserDetailsService userDetailsService;
     private final JwtService jwtService;
+    private  final UserService userService;
     private final SecurityEndpointProvider securityEndpointProvider;
+    private  final CacheService cacheService;
 
 
     @Override
@@ -64,6 +76,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 Claims claims = jwtService.parseClaim(token, Constant.TYPE_ACCESS_TOKEN);
                 final String username = jwtService.extractUsernameByClaim(claims);
                 final Integer userId = jwtService.extractUserIdByClaims(claims);
+                final String sid = jwtService.extractSidByClaims(claims);
+                final Integer authVersion = jwtService.extractAuthVersionByClaims(claims);
 
                 if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
                     List<String> roles = jwtService.extractRolesByClaim(claims);
@@ -77,9 +91,22 @@ public class JwtFilter extends OncePerRequestFilter {
                                 .username(username)
                                 .build();
                         user.setId(userId);
+                        User userEntity = userService.getById(userId);
+                        if(!Objects.equals(userEntity.getAuthVersion(), authVersion)){
+                            throw new CommonException(ErrorCode.AUTH_TOKEN_INVALID);
+                        }
+
+                        if(cacheService.getCache(RedisKey.refreshTokenTypeById(userId, authVersion, sid), String.class) == null){
+                            throw new CommonException(ErrorCode.AUTH_TOKEN_INVALID);
+                        }
+
                         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken =
                                 new UsernamePasswordAuthenticationToken(user, null, authorities);
-                        usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                        usernamePasswordAuthenticationToken.setDetails(
+                                new AuthDetails(request, sid, authVersion)
+                        );
+//                        usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
                     }
                 }
@@ -97,12 +124,19 @@ public class JwtFilter extends OncePerRequestFilter {
             SecurityContextHolder.clearContext();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
             return;
-        } catch (Exception e) {
-            log.error("Unauthorized access: {}", e.getMessage(), e);
+        }
+        catch(CommonException exception){
             SecurityContextHolder.clearContext();
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
             return;
-        } finally {
+        }
+//        catch (Exception e) {
+//            log.error("Unauthorized access: {}", e.getMessage(), e);
+//            SecurityContextHolder.clearContext();
+//            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+//            return;
+//        }
+        finally {
             MDC.clear();
         }
 

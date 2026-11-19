@@ -32,18 +32,20 @@ public class JwtService {
         return Keys.hmacShaKeyFor(bytes);
     }
 
-    private String buildToken(User user, String secret, long expireSession, String type){
+    private String buildToken(User user, String secret, long expireSession, String type, String sid){
         return Jwts.builder()
                 .subject(user.getUsername())
                 .signWith(getSignInKey(secret))
                 .claim("userId", user.getId())
+                .claim("authVersion", user.getAuthVersion())
                 .claim("username", user.getUsername())
-                .claim("roles", user.getRoles().stream().map(
+                .claim("sid", sid)
+                .claim("roles", user.getRoles() == null ? null : user.getRoles().stream().map(
                         Role::getName
                 ).toList())
-                .claim("isManager", user.getRoles().stream()
+                .claim("isManager", user.getRoles() == null ? null : user.getRoles().stream()
                         .anyMatch(role -> Boolean.TRUE.equals(role.getIsManager())))
-                .claim("isAdmin",user.getRoles().stream().
+                .claim("isAdmin", user.getRoles() == null ? null : user.getRoles().stream().
                         anyMatch(role -> Boolean.TRUE.equals(role.getIsAdmin())))
                 .claim("type", type)
                 .issuedAt(new Date())
@@ -51,12 +53,16 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateAccesstoken(User user){
-        return buildToken(user, (appProperties.getJwt().getAccesssecret()), appProperties.getJwt().getAccessTokenExpireSeconds(), Constant.TYPE_ACCESS_TOKEN);
+    public String generateAccesstoken(User user, String sid){
+        return buildToken(user, (appProperties.getJwt().getAccesssecret()),
+                appProperties.getJwt().getAccessTokenExpireSeconds(),
+                Constant.TYPE_ACCESS_TOKEN, sid);
     }
 
-    public String generateRefreshToken(User user){
-        return buildToken(user, appProperties.getJwt().getRefreshsecret(), appProperties.getJwt().getRefreshTokenExpireSeconds(), Constant.TYPE_REFRESH_TOKEN);
+    public String generateRefreshToken(User user, String sid){
+        return buildToken(user, appProperties.getJwt().getRefreshsecret(),
+                appProperties.getJwt().getRefreshTokenExpireSeconds(),
+                Constant.TYPE_REFRESH_TOKEN, sid);
 
     }
 
@@ -107,6 +113,11 @@ public class JwtService {
         return claims.get("roles",List.class);
     }
 
+//    public String extractSid(String token){
+//        Claims claims = parseClaim(token,  Constant.TYPE_REFRESH_TOKEN);
+//        return claims.get("sid", String.class);
+//    }
+
 
     public String extractUsernameByClaim(Claims claims){
         return claims.getSubject();
@@ -114,6 +125,14 @@ public class JwtService {
 
     public List<String> extractRolesByClaim(Claims claims){
         return claims.get("roles", List.class);
+    }
+
+    public String extractSidByClaims(Claims claims){
+        return claims.get("sid", String.class);
+    }
+
+    public Integer extractAuthVersionByClaims(Claims claims){
+        return claims.get("authVersion", Integer.class);
     }
 
     public Integer extractUserIdByClaims(Claims claims){
@@ -130,6 +149,10 @@ public class JwtService {
 
     public Claims parseRefreshToken(String token) {
         return parseClaim(token, Constant.TYPE_REFRESH_TOKEN);
+    }
+
+    public boolean validRefreshTokenExpired(String token){
+        return !isExpired(token, Constant.TYPE_REFRESH_TOKEN);
     }
 
     public long getRemainingTime(Claims claims) {

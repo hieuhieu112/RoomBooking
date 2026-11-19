@@ -31,7 +31,7 @@ public class UserUpdateRequest {
 
     // ===========field k doi
     private Integer incidentCount=0;
-    private String pass;
+//    private String pass;
     private String username;
-    private List<String> roles;
+//    private List<String> roles;
 }

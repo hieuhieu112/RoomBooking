@@ -47,14 +47,10 @@ public class CacheService {
             Class<T> type
     ) {
 
-        try {
-            return redisService.get(
-                    key,
-                    type
-            );
-        } catch (Exception ignored) {
-            return null;
-        }
+        return redisService.get(
+                key,
+                type
+        );
     }
 
     public void setCache(
@@ -63,21 +59,22 @@ public class CacheService {
             Duration ttl
     ) {
 
-        try {
-            redisService.set(
-                    key,
-                    value,
-                    ttl
-            );
-        } catch (Exception ignored) {
-        }
+        redisService.set(
+                key,
+                value,
+                ttl
+        );
+    }
+
+    public void evictByPatten(String patten) {
+        redisService.deleteByPattern(patten);
     }
 
     public void evict(String key) {
-
-        try {
-            redisService.delete(key);
-        } catch (Exception ignored) {
-        }
+        redisService.delete(key);
+//        try {
+//            redisService.delete(key);
+//        } catch (Exception ignored) {
+//        }
     }
 }

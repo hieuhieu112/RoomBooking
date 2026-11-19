@@ -1,10 +1,17 @@
 package com.app.backend.service.impl;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
+import com.app.backend.constant.RedisKey;
+import com.app.backend.dtos.internal.DeviceQuantityAvailable;
+import com.app.backend.entity.RoomType;
 import com.app.backend.entity.enumm.DeviceTrackingType;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
+import com.app.backend.service.CacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,14 +29,19 @@ public class DeviceServiceImpl implements DeviceService {
     private final DeviceModelServiceImpl deviceModelService;
     private final DeviceCategoryServiceImpl deviceCategoryService;
     private final RoomServiceImpl roomService;
+    private final CacheService cacheService;
 
+    private static final Duration DEVICE_CACHE_TTL = Duration.ofMinutes(15);
     public DeviceResponse mapToResponse(Device entity) {
         DeviceResponse resp = new DeviceResponse();
         resp.setId(entity.getId());
         resp.setName(entity.getName());
         resp.setStatus(entity.getStatus().toString());
-//        resp.setDeviceCategoryId(entity.getDeviceCategory().);
-//        resp.setDeviceModelId(entity.getDeviceModelId());
+        resp.setDeviceCategoryId(entity.getDeviceCategory().getId());
+        resp.setDeviceModelId(entity.getDeviceModel().getId());
+        resp.setSerial(entity.getSerial());
+        resp.setQuantity(entity.getQuantity());
+        resp.setTrackingType(entity.getTrackingType());
 //        resp.setRoomId(entity.getRoomId());
         return resp;
     }
@@ -38,6 +50,17 @@ public class DeviceServiceImpl implements DeviceService {
         if(repo.existsBySerial(request.getSerial())){
             throw  new CommonException(ErrorCode.VALIDATION);
         }
+    }
+
+    public List<DeviceQuantityAvailable> getAllQuantityAvailable(
+            LocalDateTime startTime, List<Integer> ids, LocalDateTime endTime
+    ) {
+        List<DeviceQuantityAvailable> a = repo.findAllQuantityAvailable(
+                startTime == null ? null : startTime.toString(),
+                ids,
+                endTime == null ? null : endTime.toString()
+        );
+        return a;
     }
 
     @Override
@@ -53,20 +76,44 @@ public class DeviceServiceImpl implements DeviceService {
         entity.setSerial(request.getSerial());
         if(request.getTrackingType().equals(DeviceTrackingType.QUANTITY) && request.getSerial().isEmpty()){
             entity.generateSerial();
+            entity.setQuantity(1);
         }
 //        entity.setRoom(roomService.getById(request.getRoomId()));
         entity = repo.save(entity);
+
+        evictTopicCache(null);
         return (entity);
+    }
+
+    private void evictTopicCache(Integer topicId) {
+        try {
+            cacheService.evict(RedisKey.deviceAll());
+            if (topicId != null) {
+                cacheService.evict(RedisKey.deviceById(topicId));
+            }
+        } catch (Exception ignored) {
+        }
     }
 
     @Override
     public Device getById(Integer id) {
-        return repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.DEVICE_NOT_FOUND));
+        return cacheService.getOrLoad(
+                RedisKey.deviceById(id),
+                Device.class,
+                DEVICE_CACHE_TTL,
+                () -> repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.DEVICE_NOT_FOUND))
+        );
     }
 
     @Override
     public List<Device> getAll() {
-        return repo.findAll();
+        Device[] items = cacheService.getOrLoad(
+                RedisKey.deviceAll(),
+                Device[].class,
+                DEVICE_CACHE_TTL,
+                () -> repo.findAll().toArray(new Device[0])
+        );
+        return Arrays.stream(items).toList();
     }
 
     @Override
@@ -86,9 +133,13 @@ public class DeviceServiceImpl implements DeviceService {
         }
 //        entity.setRoomId(request.getRoomId());
         entity = repo.save(entity);
+        evictTopicCache(id);
         return (entity);
     }
 
     @Override
-    public void delete(Integer id) { repo.deleteById(id); }
+    public void delete(Integer id) {
+        evictTopicCache(id);
+        repo.deleteById(id);
+    }
 }

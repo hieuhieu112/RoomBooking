@@ -1,5 +1,6 @@
 package com.app.backend.dtos.response;
 
+import com.app.backend.entity.enumm.RoomStatus;
 import lombok.*;
 
 import java.util.List;
@@ -16,5 +17,6 @@ public class RoomResponse {
     private Integer roomTypeId;
     private Integer houseId;
     private List<RoomImageResponse> image;
+    private RoomStatus status;
     private Integer managerGroupId;
 }

@@ -21,6 +21,7 @@ public class CorsConfig {
                         .allowedOrigins(frontendUrl)
                         .allowedMethods(
                                 "GET",
+                                "PATCH",
                                 "POST",
                                 "PUT",
                                 "DELETE",

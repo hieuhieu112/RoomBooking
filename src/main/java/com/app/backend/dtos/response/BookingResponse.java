@@ -1,6 +1,8 @@
 package com.app.backend.dtos.response;
 
 import java.time.LocalDateTime;
+import java.util.List;
+
 import lombok.*;
 
 @Getter
@@ -17,4 +19,6 @@ public class BookingResponse {
     private Integer roomId;
     private Integer approvedByUserId;
     private Boolean canApprove = false;
+
+    private List<DeviceBorrowDetailResponse> deviceBorrowDetailResponses;
 }

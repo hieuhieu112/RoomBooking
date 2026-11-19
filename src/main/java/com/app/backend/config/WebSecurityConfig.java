@@ -1,7 +1,9 @@
 package com.app.backend.config;
 
 
+import com.app.backend.constant.ManagerPathConstant;
 import com.app.backend.constant.SecurityConstant;
+import com.app.backend.constant.UserPathConstant;
 import com.app.backend.filter.JwtFilter;
 import com.app.backend.provider.SecurityEndpointProvider;
 import lombok.AllArgsConstructor;
@@ -38,8 +40,8 @@ public class WebSecurityConfig {
                             .permitAll()
                             .requestMatchers("/files/**").permitAll()
                             .requestMatchers("/actuator/health").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/roomimages/**").permitAll()
                             .requestMatchers(
-                                    "/roomimages/**",
                                     "/",
                                     "/firebase-messaging-sw.js",
                                     "/index.html",
@@ -49,8 +51,23 @@ public class WebSecurityConfig {
                                     "/avatars/**",
                                     "/auth/login",
                                     "/actuator/health"
-                            ).permitAll()
-                            .anyRequest().authenticated();
+                            ).permitAll();
+                    requests.requestMatchers(HttpMethod.PATCH,
+                                    "/users/*/password", "/users/*/roles", "/users/*/lock")
+                            .hasRole("SYSTEM_ADMIN");
+                    ManagerPathConstant.MANAGER_ENDPOINTS.forEach((method, paths) ->
+                            requests.requestMatchers(method, paths.toArray(String[]::new))
+                                    .hasAnyRole("MANAGER", "SYSTEM_ADMIN")
+                    );
+
+                    UserPathConstant.USER_ENDPOINTS.forEach((method, paths) ->
+                            requests.requestMatchers(method, paths.toArray(String[]::new))
+                                    .authenticated()
+                                    //.hasAnyRole("USER", "MANAGER", "ADMIN")
+                    );
+
+                    requests.anyRequest().hasRole("SYSTEM_ADMIN");
+                            //.anyRequest().authenticated();
                 });
 
         return http.build();

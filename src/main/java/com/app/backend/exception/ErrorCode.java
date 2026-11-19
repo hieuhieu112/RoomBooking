@@ -34,12 +34,13 @@ public enum ErrorCode {
     FILE_NOT_FOUND("ERROR.FILE_NOT_FOUND", "Không tìm thấy file", HttpStatus.NOT_FOUND),
 
     // ===== AUTH =====
+    AUTH_NOT_ENOUGH("ERROR.AUTH.NOT_ENOUGH", "Account does not have permission", HttpStatus.FORBIDDEN),
     AUTH_UNAUTHORIZED("ERROR.AUTH.UNAUTHORIZED", "Unauthorized", HttpStatus.UNAUTHORIZED),
     AUTH_FORBIDDEN("ERROR.AUTH.FORBIDDEN", "Truy cập bị từ chối", HttpStatus.FORBIDDEN),
     AUTH_WRONG("ERROR.AUTH.WRONG", "Thông tin đăng nhập không chính xác", HttpStatus.FORBIDDEN),
     AUTH_TOKEN_EXPIRED("ERROR.AUTH.TOKEN_EXPIRED", "Het phien lam viec", HttpStatus.UNAUTHORIZED),
     AUTH_TOKEN_INVALID("ERROR.AUTH.TOKEN_INVALID", "Token invalid", HttpStatus.UNAUTHORIZED),
-    AUTH_LOGIN_FAILED("ERROR.AUTH.LOGIN_FAILED", "Login failed", HttpStatus.UNAUTHORIZED),
+    AUTH_LOGIN_FAILED("ERROR.AUTH.LOGIN_FAILED", "Login failed", HttpStatus.FORBIDDEN),
     AUTH_ACCOUNT_INACTIVE("ERROR.AUTH.ACCOUNT_INACTIVE", "Tài khoan chua kich hoat", HttpStatus.FORBIDDEN),
     AUTH_ACCOUNT_LOCKED("ERROR.AUTH.ACCOUNT_LOCKED", "Tai khoan bi khoa", HttpStatus.FORBIDDEN),
     AUTH_EMAIL_NOTMATCH("ERROR.AUTH.EMAIL_NOTMATCH", "Email khong khop voi username", HttpStatus.FORBIDDEN),

@@ -42,6 +42,7 @@ public class RoomServiceImpl implements RoomService {
         resp.setCapacity(entity.getCapacity());
         resp.setRoomTypeId(entity.getRoomType().getId());
         resp.setHouseId(entity.getHouse().getId());
+        resp.setStatus(entity.getStatus());
         resp.setImage(entity.getImages().stream().map(
                 roomImageService::mapToResponse
         ).toList());

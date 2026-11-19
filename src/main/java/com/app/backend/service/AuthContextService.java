@@ -1,6 +1,7 @@
 package com.app.backend.service;
 
 import com.app.backend.dtos.internal.AuthContext;
+import com.app.backend.dtos.internal.AuthDetails;
 import com.app.backend.entity.User;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -30,8 +31,18 @@ public class AuthContextService {
             if (principal instanceof User user) {
                 Integer userId = user.getId();
                 String username = user.getUsername();
+//                AuthDetails authDetails = (AuthDetails) auth.getDetails();
+                String sid = null;
+                Integer authVersion = null;
+
+                if(auth.getDetails() instanceof AuthDetails authDetails){
+                    sid = authDetails.getSid();
+                    authVersion = authDetails.getAuthVersion();
+                }
+
+
                 log.info("user id: {} username: {}", userId, username);
-                return new AuthContext(username, userId, roles);
+                return new AuthContext(username, userId, roles,sid, authVersion);
             }
             return new AuthContext(auth.getName(), 0, roles);
 

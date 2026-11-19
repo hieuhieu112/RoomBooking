@@ -1,7 +1,9 @@
 package com.app.backend.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
+import com.app.backend.dtos.internal.DeviceQuantityAvailable;
 import com.app.backend.service.impl.DeviceServiceImpl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,6 +43,19 @@ public class DeviceController {
             return ResponseEntity.ok(response);
         }
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping(value = "/available")
+    public ResponseEntity<DataResponse<List<DeviceQuantityAvailable>>> getAllAvailable(
+            @RequestParam LocalDateTime start,
+            @RequestParam LocalDateTime end
+            ) {
+        DataResponse<List<DeviceQuantityAvailable>> response = DataResponse.<List<DeviceQuantityAvailable>>builder()
+                .data(service.getAllQuantityAvailable(start, null, end))
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping

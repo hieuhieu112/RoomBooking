@@ -7,8 +7,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DeviceBorrowDetailResponse {
-    private Integer id;
+    private Long id;
     private Integer bookingId;
     private Integer deviceId;
     private String note;
+    private Integer quantity;
+//    private Integer serial;
 }

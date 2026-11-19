@@ -43,15 +43,15 @@ public class DeviceBorrowDetailController {
         return ResponseEntity.notFound().build();
     }
 
-    @GetMapping
-    public ResponseEntity<DataResponse<List<DeviceBorrowDetailResponse>>> getAll() {
-        DataResponse<List<DeviceBorrowDetailResponse>> response = DataResponse.<List<DeviceBorrowDetailResponse>>builder()
-                .data(service.getAll().stream().map(service::mapToResponse).toList())
-                .statusCode(StatusRes.SUCCESS)
-                .message("SUCCESS")
-                .build();
-        return ResponseEntity.ok(response);
-    }
+//    @GetMapping
+//    public ResponseEntity<DataResponse<List<DeviceBorrowDetailResponse>>> getAll() {
+//        DataResponse<List<DeviceBorrowDetailResponse>> response = DataResponse.<List<DeviceBorrowDetailResponse>>builder()
+//                .data(service.getAll().stream().map(service::mapToResponse).toList())
+//                .statusCode(StatusRes.SUCCESS)
+//                .message("SUCCESS")
+//                .build();
+//        return ResponseEntity.ok(response);
+//    }
 
     @PutMapping("/{id}")
     public ResponseEntity<DataResponse<DeviceBorrowDetailResponse>> update(@PathVariable Long id, @Valid @RequestBody DeviceBorrowDetailRequest request, BindingResult result) {

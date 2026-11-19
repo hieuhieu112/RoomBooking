@@ -34,31 +34,39 @@ public class BookingController {
 
     @GetMapping("/{id}")
     public ResponseEntity<DataResponse<BookingResponse>> getById(@PathVariable Integer id) {
-        var res = service.getById(id);
-        BookingResponse a = service.mapToResponse(res);
-        a.setCanApprove(service.checkCanApprove(res));
-        if (res != null) {
-            DataResponse<BookingResponse> response = DataResponse.<BookingResponse>builder()
-                    .data(a)
-                    .statusCode(StatusRes.SUCCESS)
-                    .message("SUCCESS")
-                    .build();
-            return ResponseEntity.ok(response);
-        }
-        return ResponseEntity.notFound().build();
-    }
+//        var res = service.getById(id);
+//        BookingResponse a = service.mapToResponse(res);
+//        a.setCanApprove(service.checkCanApprove(res));
+//        if (res != null) {
+//            DataResponse<BookingResponse> response = DataResponse.<BookingResponse>builder()
+//                    .data(a)
+//                    .statusCode(StatusRes.SUCCESS)
+//                    .message("SUCCESS")
+//                    .build();
+//            return ResponseEntity.ok(response);
+//        }
+//        return ResponseEntity.notFound().build();
 
-    @GetMapping
-    public ResponseEntity<DataResponse<Page<BookingResponse>>> getAllByPermission(
-            @RequestParam int page,
-            @RequestParam int size) {
-        DataResponse<Page<BookingResponse>> response = DataResponse.<Page<BookingResponse>>builder()
-                .data(service.getAllByPermission(size, page).map(service::mapToResponse))
+
+        DataResponse<BookingResponse> response = DataResponse.<BookingResponse>builder()
+                .data(service.getBookingResponseDetailById(id))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();
         return ResponseEntity.ok(response);
     }
+
+//    @GetMapping
+//    public ResponseEntity<DataResponse<Page<BookingResponse>>> getAllByPermission(
+//            @RequestParam int page,
+//            @RequestParam int size) {
+//        DataResponse<Page<BookingResponse>> response = DataResponse.<Page<BookingResponse>>builder()
+//                .data(service.getAllByAdmin(size, page).map(service::mapToResponse))
+//                .statusCode(StatusRes.SUCCESS)
+//                .message("SUCCESS")
+//                .build();
+//        return ResponseEntity.ok(response);
+//    }
 
     @GetMapping(value = "/filter")
     public ResponseEntity<DataResponse<Page<BookingResponse>>> filterBooking(
@@ -85,9 +93,14 @@ public class BookingController {
     @GetMapping(value = "/my-booking")
     public ResponseEntity<DataResponse<Page<BookingResponse>>> getAllMyBooking(
             @RequestParam int page,
-            @RequestParam int size) {
+            @RequestParam int size,
+            @RequestParam(required = false) BookingStatus status,
+            @RequestParam(required = false) LocalDateTime startTime,
+            @RequestParam(required = false) LocalDateTime endTime,
+            @RequestParam(required = false) List<Integer> roomIds
+    ) {
         DataResponse<Page<BookingResponse>> response = DataResponse.<Page<BookingResponse>>builder()
-                .data(service.getAllMyBooking(size, page).map(service::mapToResponse))
+                .data(service.getFilterByCurrAccount(size, page, status, startTime,endTime,roomIds).map(service::mapToResponse))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();
@@ -96,9 +109,14 @@ public class BookingController {
 
     @GetMapping(value = "/approval")
     public ResponseEntity<DataResponse<List<BookingResponse>>> getAllApproval(
-            @RequestParam int size,@RequestParam int page) {
+            @RequestParam int size,@RequestParam int page,
+            @RequestParam(required = false) BookingStatus status,
+            @RequestParam(required = false) LocalDateTime startTime,
+            @RequestParam(required = false) LocalDateTime endTime,
+            @RequestParam(required = false) List<Integer> roomIds
+    ) {
         DataResponse<List<BookingResponse>> response = DataResponse.<List<BookingResponse>>builder()
-                .data(service.getAllByPermission(size, page).stream().map(service::mapToResponse).toList())
+                .data(service.getBookingApprove(size, page, status,startTime,endTime,roomIds).stream().map(service::mapToResponse).toList())
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();

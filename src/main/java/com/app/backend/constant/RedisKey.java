@@ -9,18 +9,31 @@ public class RedisKey {
     private static final String DEVICE_TYPE_PREFIX = "device_type:";
     private static final String MANUFACTURER_PREFIX = "manufacturer:";
     private static final String DEVICE_MODEL_PREFIX = "device_model:";
+    private static final String DEVICE_PREFIX = "device:";
     private static final String ROLE_PREFIX = "role:";
     private static final String USER_PREFIX = "user:";
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
 
     private static final String OTP_PREFIX = "otp:";
 
+    public static String deviceAll() {
+        return DEVICE_PREFIX + "all";
+    }
+
+    public static String deviceById(Integer id) {
+        return DEVICE_PREFIX + "id:" + id;
+    }
+
     public static String otpTypeById(String username) {
         return OTP_PREFIX + "username:" + username;
     }
 
-    public static String refreshTokenTypeById(Integer id) {
-        return REFRESH_TOKEN_PREFIX + "id:" + id;
+    public static String refreshTokenTypeById(Integer id, Integer authVersion, String uid) {
+        return REFRESH_TOKEN_PREFIX + "id:" + id +":authversion:"+ authVersion + ":uid:" + uid;
+    }
+
+    public static String refreshTokenPattenTypeById(Integer id) {
+        return REFRESH_TOKEN_PREFIX + "id:" + id +":*";
     }
 
     public static String roomTypeAll() {

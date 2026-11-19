@@ -1,5 +1,6 @@
 package com.app.backend.dtos.request;
 
+import com.app.backend.entity.enumm.RoomStatus;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
@@ -15,6 +16,7 @@ public class RoomRequest {
     private Integer capacity;
     private Integer roomTypeId;
     private Integer houseId;
+    private RoomStatus status;
     private Integer cleaningDurationMinutes = 15;
 //    private String image;
     private Integer managerGroupId;

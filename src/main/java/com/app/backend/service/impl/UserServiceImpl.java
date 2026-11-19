@@ -3,11 +3,15 @@ package com.app.backend.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.app.backend.constant.RedisKey;
+import com.app.backend.dtos.internal.AuthContext;
 import com.app.backend.entity.ManagerGroup;
 import com.app.backend.entity.Role;
 import com.app.backend.entity.enumm.Status;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
+import com.app.backend.service.AuthContextService;
+import com.app.backend.service.CacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -30,6 +34,9 @@ public class UserServiceImpl implements UserService {
     private final RoleServiceImpl roleService;
 //    private final ManagerGroupServiceImpl managerGroupService;
     private final PasswordEncoder passwordEncoder;
+//    private final AuthContextService authContextService;
+
+    private final CacheService cacheService;
 
     public UserResponse mapToResponse(User entity) {
         UserResponse resp = new UserResponse();
@@ -66,6 +73,8 @@ public class UserServiceImpl implements UserService {
         return entity;
     };
 
+
+    @Override
     public User createSaveDB(UserRequest request, Status s){
 
         if (s != null) request.setStatus(s);
@@ -125,20 +134,35 @@ public class UserServiceImpl implements UserService {
 
         User entity = getById(id);
         entity.setName(request.getName());
-        entity.setStatus(request.getStatus());
+//        entity.setStatus(request.getStatus());
         if(!entity.getEmail().equals(request.getEmail())){
             entity.setEmail(request.getEmail());
         }
-        entity.setRoles(request.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet()));
+//        entity.setRoles(request.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet()));
 
 //        entity.setIncidentCount(request.getIncidentCount());
-        if(request.getPass() != null) entity.setPassword(passwordEncoder.encode(request.getPass()));
+//        if(request.getPass() != null) entity.setPassword(passwordEncoder.encode(request.getPass()));
 //        entity.setUsername(request.getUsername());
 //        ManagerGroup managerGroup = managerGroupService.getById(request.getManagerGroupId());
 //        entity.setManagerGroup(managerGroup);
         entity = save(entity);
         return entity;
     }
+
+    @Override
+    public User updateMyAccount(UserUpdateRequest request) {
+        AuthContext context = AuthContextService.getContext();
+        User entity = getById(context.getUserId());
+
+        entity.setName(request.getName());
+        if(!entity.getEmail().equals(request.getEmail())){
+            entity.setEmail(request.getEmail());
+        }
+        entity = save(entity);
+        return entity;
+    }
+
+    @Override
     public void activeUser(String username){
         User user = getByUsername(username);
 
@@ -147,8 +171,22 @@ public class UserServiceImpl implements UserService {
         save(user);
     }
 
+    @Override
+    @Transactional
+    public User changePass(User user, String newPass){
+        cacheService.evictByPatten(RedisKey.refreshTokenPattenTypeById(AuthContextService.getContext().getUserId()));
+        user.setPassword(passwordEncoder.encode(newPass));
+        user.setAuthVersion(user.getAuthVersion() + 1);
+
+        return save(user);
+    }
+
+    @Override
+    @Transactional
     public User changeManageGroup(User user, ManagerGroup managerGroup){
+        cacheService.evictByPatten(RedisKey.refreshTokenPattenTypeById(user.getId()));
         user.setManagerGroup(managerGroup);
+        user.setAuthVersion(user.getAuthVersion() + 1); 
         return repo.save(user);
     }
 

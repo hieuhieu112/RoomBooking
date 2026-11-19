@@ -81,4 +81,22 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
             @Param("p_end_time") String  p_end_time,
             Pageable pageable
     );
+
+
+    @Query(
+            value = "SELECT * FROM get_all_booking_manager(:p_manager_user_id, :p_manager_group_id, " +
+                    "CAST(:p_end_time AS timestamp), :p_status, :p_room_ids, CAST(:p_start AS timestamp))",
+            countQuery = "SELECT COUNT(*) FROM get_all_booking_manager(:p_manager_user_id, :p_manager_group_id, " +
+                    "CAST(:p_end_time AS timestamp),:p_status, :p_room_ids, CAST(:p_start AS timestamp))",
+            nativeQuery = true
+    )
+    Page<Booking> findAllBookingManager(
+            @Param("p_manager_user_id") Integer  p_manager_user_id,
+            @Param("p_manager_group_id") Integer p_manager_group_id,
+            @Param("p_start") String  p_start,
+            @Param("p_status") Integer p_status,
+            @Param("p_end_time") String p_end_time,
+            @Param("p_room_ids") List<Integer> p_room_ids,
+            Pageable pageable
+    );
 }

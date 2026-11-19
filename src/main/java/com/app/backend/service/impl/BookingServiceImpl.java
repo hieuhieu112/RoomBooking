@@ -3,6 +3,7 @@ package com.app.backend.service.impl;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import com.app.backend.dtos.internal.AuthContext;
 import com.app.backend.entity.*;
@@ -13,6 +14,7 @@ import com.app.backend.exception.ErrorCode;
 import com.app.backend.redis.NotificationEvent;
 import com.app.backend.redis.NotificationPublisher;
 import com.app.backend.service.AuthContextService;
+import com.app.backend.service.intf.DeviceBorrowDetailService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -36,6 +38,8 @@ public class BookingServiceImpl implements BookingService {
     private final NotificationPublisher notificationPublisher;
     private final ManagerGroupServiceImpl managerGroupService;
 
+    private final DeviceBorrowDetailService deviceBorrowDetailService;
+
     public BookingResponse mapToResponse(Booking entity) {
         BookingResponse resp = new BookingResponse();
         resp.setId(entity.getId());
@@ -54,7 +58,6 @@ public class BookingServiceImpl implements BookingService {
         return resp;
     }
 
-
     public Boolean checkCanApprove(Booking entity){
         User user = userService.getById(AuthContextService.getContext().getUserId());
         if(
@@ -71,6 +74,26 @@ public class BookingServiceImpl implements BookingService {
                 return true;
             }
         }
+        return false;
+    }
+
+    public Boolean checkPermission(Booking booking){
+
+        User currUser = userService.getById(AuthContextService.getContext().getUserId());
+
+        if (currUser.isAdmin()){
+            return true;
+        }
+        List<Role> roleList = currUser.getRoles().stream().filter(role -> role.getIsManager()).toList();
+        if (
+                currUser.isManager()
+                        && currUser.getManagerGroup().getRooms().stream().anyMatch(room -> room.getId().equals(booking.getRoom().getId()))
+        ){
+            return true;
+        }
+
+        if(Objects.equals(booking.getCreatedBy(), currUser.getId())) return true;
+
         return false;
     }
 
@@ -116,7 +139,6 @@ public class BookingServiceImpl implements BookingService {
         return (entity);
     }
 
-
     private void sendNotificationToApproval(Room room, List<User> recevier, Integer id){
         for(User u: recevier){
             notificationPublisher.sendMessage(NotificationEvent.builder()
@@ -136,44 +158,50 @@ public class BookingServiceImpl implements BookingService {
         return repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.BOOKING_NOT_FOUND));
     }
 
-    @Override
-    public Page<Booking> getAllByPermission(int size, int page) {
-        if(
-                AuthContextService.getContext().isFullAccess()
-        ){
-            return getAllByAdmin(size, page);
-        }
-        else {
-            return getAllByUser(size, page);
-        }
+    // get boooking detail : include device
+    public BookingResponse getBookingResponseDetailById(Integer id) {
+        User u = userService.getById(AuthContextService.getContext().getUserId());
+        Booking booking = getById(id);
+
+        if (!checkPermission(booking)) throw new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
+
+        BookingResponse bookingResponse = mapToResponse(booking);
+        List<DeviceBorrowDetail> deviceBorrowDetail = deviceBorrowDetailService.getAllByBooking(id);
+        bookingResponse.setDeviceBorrowDetailResponses(
+                deviceBorrowDetail.stream().map(deviceBorrowDetailService::mapToResponse).toList()
+        );
+        return bookingResponse;
     }
 
 
-    public Page<Booking> getAllByFilter(
-            int size, int page,
-            BookingStatus status,
-            LocalDateTime startTime,
-            LocalDateTime endTime,
-            List<Integer> roomID
+
+
+
+    @Override // find by created and filter
+    public Page<Booking> getFilterByCurrAccount(
+            int size, int page
+            ,BookingStatus status,LocalDateTime startTime, LocalDateTime endTime,
+            List<Integer> roomIDs
     ) {
+
         Integer statusNumber = null;
         if (status != null) statusNumber = status.getValue();
-        if(
-                AuthContextService.getContext().isFullAccess()
-        ){
-            return getFilterByAdmin(size, page,statusNumber,startTime,endTime,roomID);
-        }
-        else {
-            return getAllByUser(size, page);
-        }
-    }
 
-    @Override
-    public Page<Booking> getAllByAdmin(int size, int page) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        return repo.findAll(pageable);
+        Integer userid = AuthContextService.getContext().getUserId();
+
+        return repo.findAllBookingManager(
+                userid,
+                -1,
+                startTime == null ? null : startTime.toString(),
+                statusNumber,
+                endTime == null ? null : endTime.toString(),
+                roomIDs,
+                pageable
+        );
     }
 
+    // find all and filter
     public Page<Booking> getFilterByAdmin(int size, int page,
                                           Integer status,
                                           LocalDateTime startTime,
@@ -189,36 +217,92 @@ public class BookingServiceImpl implements BookingService {
         );
     }
 
-    @Override
-    public Page<Booking> getAllMyBooking(int size, int page) {
-        Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        Integer userid = AuthContextService.getContext().getUserId();
-        AuthContext a = AuthContextService.getContext();
-        return repo.findBooingByUserId(userid, pageable);
+    // get all booking approve, only approve, not include createdBy
+    public Page<Booking> getBookingApprove(
+            int size, int page,
+            BookingStatus status,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            List<Integer> roomID
+    ) {
+        User user = userService.getById(AuthContextService.getContext().getUserId());
+        Integer statusNumber = null;
+
+        if (status != null) statusNumber = status.getValue();
+        if(
+                user.isAdmin()
+        ){
+            return getFilterByAdmin(size, page,statusNumber,startTime,endTime,roomID);
+        };
+        if(
+                user.isManager()
+        ){
+            return getBookingApproveManager(size, page,statusNumber,startTime,endTime,roomID);
+        };
+
+        throw new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
     }
 
-    @Override
-    public Page<Booking> getAllByUser(int size, int page) {
+    //// get all booking approve, only approve by manager
+    public Page<Booking> getBookingApproveManager(
+            int size, int page,
+            Integer status,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            List<Integer> roomIDs
+    ) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
         User user = userService.getById(AuthContextService.getContext().getUserId());
         if(
-                user.getManagerGroup() == null
+                user.getManagerGroup() == null || !user.isManager()
         ){
             throw new CommonException(ErrorCode.USER_IS_NOT_MANAGER);
         }
 
-        ManagerGroup managerGroup = managerGroupService.getById( user.getManagerGroup().getId());
 
-        Page<Booking> bookings = repo.findByRoomIds(managerGroup.getRooms().stream().map(room -> room.getId()).toList(),
-                pageable);
-        return bookings;
+        return repo.findAllBookingManager(
+                -1,// not get created
+                user.getManagerGroup().getId(),
+                startTime == null ? null : startTime.toString(),
+                status,
+                endTime == null ? null : endTime.toString(),
+                roomIDs,
+                pageable
+        );
     }
 
-    public Page<Booking> getFilterByUser(int size, int page,
-                                          Integer status,
-                                          LocalDateTime startTime,
-                                          LocalDateTime endTime,
-                                          List<Integer> roomIDs
+    //get all
+    public Page<Booking> getAllByFilter(
+            int size, int page,
+            BookingStatus status,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            List<Integer> roomID
+    ) {
+        Integer statusNumber = null;
+        if (status != null) statusNumber = status.getValue();
+        if(
+                AuthContextService.getContext().isFullAccess()
+        ){
+            return getFilterByAdmin(size, page,statusNumber,startTime,endTime,roomID);
+        };
+        User currUser = userService.getById(AuthContextService.getContext().getUserId());
+        if (currUser.isManager() && currUser.getManagerGroup() != null)
+        {
+            return getFilterByManager(size, page,statusNumber,startTime,endTime,roomID);
+        }
+
+        return getFilterByCurrAccount(size,page,status,startTime,endTime,roomID);
+    }
+
+
+
+
+    public Page<Booking> getFilterByManager(int size, int page,
+                                            Integer status,
+                                            LocalDateTime startTime,
+                                            LocalDateTime endTime,
+                                            List<Integer> roomIDs
     ) {
         User user = userService.getById(AuthContextService.getContext().getUserId());
         if(
@@ -227,13 +311,24 @@ public class BookingServiceImpl implements BookingService {
             throw new CommonException(ErrorCode.USER_IS_NOT_MANAGER);
         }
 
-        ManagerGroup managerGroup = managerGroupService.getById( user.getManagerGroup().getId());
-        managerGroup.getRooms().stream().map(room -> roomIDs.add(room.getId()));
+//        ManagerGroup managerGroup = managerGroupService.getById( user.getManagerGroup().getId());
+//        managerGroup.getRooms().stream().map(room -> roomIDs.add(room.getId()));
         Pageable pageable = PageRequest.of(page, size, Sort.by("id").descending());
-        return repo.findBookingFilter(
-                startTime == null ? null : startTime.toString(), status,roomIDs,endTime == null ? null : endTime.toString(), pageable
+        return repo.findAllBookingManager(
+                user.getId(),
+                user.getManagerGroup().getId(),
+                startTime == null ? null : startTime.toString(),
+                status,
+                endTime == null ? null : endTime.toString(),
+                roomIDs,
+                pageable
         );
     }
+
+
+
+//=======================================
+
 
     @Override
     public Booking approval(Integer id) {
@@ -253,7 +348,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Booking update(Integer id, BookingRequest request) {
-        Booking entity = repo.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
+        Booking entity = getById(id);
+        if(!checkPermission(entity)) throw  new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
+
         entity.setReason(request.getReason());
         entity.setStartTime(request.getStartTime());
         entity.setEndTime(request.getEndTime());
@@ -267,6 +364,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public void delete(Integer id) {
+        Booking entity = getById(id);
+        if(!checkPermission(entity)) throw  new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
         repo.deleteById(id);
     }
 

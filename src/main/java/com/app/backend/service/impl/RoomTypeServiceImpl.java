@@ -89,6 +89,7 @@ public class RoomTypeServiceImpl implements RoomTypeService {
     }
 
     @Override
-    public void delete(Integer id) { evictTopicCache(id);
+    public void delete(Integer id) {
+        evictTopicCache(id);
         repo.deleteById(id); }
 }
