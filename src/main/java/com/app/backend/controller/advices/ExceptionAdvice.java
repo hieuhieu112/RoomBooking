@@ -28,11 +28,6 @@ public class ExceptionAdvice {
         return ResponseEntity.status(ec.getHttpStatus()).body(response);
     }
 
-
-
-
-
-
     @ExceptionHandler(ValidException.class)
     public ResponseEntity<DataResponse<?>> handleValidationException(ValidException ex, HttpServletRequest req) {
         ErrorCode ec = ex.getErrorCode();

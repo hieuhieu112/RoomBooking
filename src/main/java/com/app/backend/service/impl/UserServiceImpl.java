@@ -11,7 +11,7 @@ import com.app.backend.entity.enumm.Status;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
 import com.app.backend.service.AuthContextService;
-import com.app.backend.service.CacheService;
+import com.app.backend.service.intf.AuthSessionStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -34,9 +34,8 @@ public class UserServiceImpl implements UserService {
     private final RoleServiceImpl roleService;
 //    private final ManagerGroupServiceImpl managerGroupService;
     private final PasswordEncoder passwordEncoder;
+    private final AuthSessionStore authSessionStore;
 //    private final AuthContextService authContextService;
-
-    private final CacheService cacheService;
 
     public UserResponse mapToResponse(User entity) {
         UserResponse resp = new UserResponse();
@@ -174,7 +173,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User changePass(User user, String newPass){
-        cacheService.evictByPatten(RedisKey.refreshTokenPattenTypeById(AuthContextService.getContext().getUserId()));
+        authSessionStore.evictByPattenRefreshToken(AuthContextService.getContext().getUserId());
         user.setPassword(passwordEncoder.encode(newPass));
         user.setAuthVersion(user.getAuthVersion() + 1);
 
@@ -184,7 +183,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User changeManageGroup(User user, ManagerGroup managerGroup){
-        cacheService.evictByPatten(RedisKey.refreshTokenPattenTypeById(user.getId()));
+        authSessionStore.evictByPattenRefreshToken(user.getId());
         user.setManagerGroup(managerGroup);
         user.setAuthVersion(user.getAuthVersion() + 1); 
         return repo.save(user);

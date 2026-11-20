@@ -17,6 +17,7 @@ import com.app.backend.service.CacheService;
 import com.app.backend.service.JwtService;
 import com.app.backend.service.RedisService;
 import com.app.backend.service.intf.AuthServices;
+import com.app.backend.service.intf.AuthSessionStore;
 import com.app.backend.service.intf.UserService;
 import io.jsonwebtoken.Claims;
 import jakarta.mail.internet.MimeMessage;
@@ -50,6 +51,7 @@ public class AuthServicesImpl implements AuthServices {
 
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final AuthSessionStore authSessionStore;
     private final CacheService cacheService;
 
     private static final Duration OTP_CACHE_TTL = Duration.ofMinutes(5);
@@ -71,10 +73,10 @@ public class AuthServicesImpl implements AuthServices {
             String sid = UUID.randomUUID().toString();
             String accessToken = jwtService.generateAccesstoken(user, sid);
             String refreshToken = jwtService.generateRefreshToken(user, sid);
-            cacheService.setCache(
-                    RedisKey.refreshTokenTypeById(user.getId(), user.getAuthVersion(), sid),
-                    DigestUtils.sha256Hex(refreshToken),
-                    Duration.ofSeconds(appProperties.getJwt().getRefreshTokenExpireSeconds())//RT_CACHE_TTL
+            authSessionStore.setCacheRefreshToken(
+                    user.getId(), user.getAuthVersion(),
+                    sid,
+                    refreshToken
             );
 
             ResponseCookie cookie = ResponseCookie.from("rf-tk", refreshToken)
@@ -168,10 +170,6 @@ public class AuthServicesImpl implements AuthServices {
         return u;
     }
 
-//    @Override
-//    public void changePassword(String username, String newPassword) {
-//        cacheService.evict(RedisKey.refreshTokenTypeById(AuthContextService.getContext().getUserId()));
-//    }
 
     @Override
     public void changePasswordMyAccount(ChangePasswordRequest request){
@@ -222,10 +220,10 @@ public class AuthServicesImpl implements AuthServices {
         User userEntity = userService.getById(AuthContextService.getContext().getUserId());
 
 
-        cacheService.evict(RedisKey.refreshTokenTypeById(userEntity.getId(),
+        authSessionStore.evictRefreshToken(userEntity.getId(),
                 AuthContextService.getContext().getAuthVersion(),
                 AuthContextService.getContext().getSid()
-        ));
+        );
         ResponseCookie cookie = ResponseCookie.from("rf-tk", null)
                 .httpOnly(true)
                 .secure(appProperties.getCookie().isSecure())
@@ -258,7 +256,10 @@ public class AuthServicesImpl implements AuthServices {
 
 
         if(
-                !Objects.equals(DigestUtils.sha256Hex(refreshToken), cacheService.getCache(RedisKey.refreshTokenTypeById(userId, authVersion, sid), String.class))
+                !Objects.equals(
+                        DigestUtils.sha256Hex(refreshToken),
+                        authSessionStore.getCacheRefreshToken(userId, authVersion, sid)
+                )
                 || !Objects.equals(userEntiy.getAuthVersion(), authVersion)
         ) {
             throw new CommonException(ErrorCode.AUTH_RESET_TOKEN_NOTMATCH);
@@ -282,10 +283,8 @@ public class AuthServicesImpl implements AuthServices {
         String newAT = jwtService.generateAccesstoken(userEntiy,sid);
 
         String newRT = jwtService.generateRefreshToken(userEntiy, sid);
-        cacheService.setCache(
-                RedisKey.refreshTokenTypeById(userEntiy.getId(), authVersion, sid),
-                DigestUtils.sha256Hex(newRT),
-                Duration.ofSeconds(appProperties.getJwt().getRefreshTokenExpireSeconds())//RT_CACHE_TTL
+        authSessionStore.setCacheRefreshToken(
+                userEntiy.getId(), authVersion, sid, newRT
         );
         ResponseCookie cookie = ResponseCookie.from("rf-tk", newRT)
                 .httpOnly(true)
@@ -307,7 +306,7 @@ public class AuthServicesImpl implements AuthServices {
 
         String otp = cacheService.getCache(RedisKey.otpTypeById(request.getUsername()), String.class);
 
-        if(otp.equals(request.getOtp())){
+        if(otp != null && otp.equals(request.getOtp())){
             evictOTPCache(request.getUsername());
             userService.activeUser(request.getUsername());
         }else {
@@ -317,10 +316,7 @@ public class AuthServicesImpl implements AuthServices {
 
     private void evictOTPCache(String username) {
 
-        try {
-            cacheService.evict(RedisKey.otpTypeById(username));
-        } catch (Exception ignored) {
-        }
+        cacheService.evict(RedisKey.otpTypeById(username));
     }
 
 

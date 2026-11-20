@@ -1,20 +1,18 @@
 package com.app.backend.filter;
 
 
-import com.app.backend.config.AppProperties;
-import com.app.backend.constant.ManagerPathConstant;
-import com.app.backend.constant.RedisKey;
 import com.app.backend.constant.SecurityConstant;
-import com.app.backend.constant.UserPathConstant;
 import com.app.backend.dtos.internal.AuthDetails;
+import com.app.backend.dtos.response.DataResponse;
 import com.app.backend.entity.User;
 import com.app.backend.exception.CommonException;
 import com.app.backend.exception.ErrorCode;
 import com.app.backend.provider.SecurityEndpointProvider;
-import com.app.backend.service.CacheService;
 import com.app.backend.service.JwtService;
+import com.app.backend.service.intf.AuthSessionStore;
 import com.app.backend.service.intf.UserService;
 import com.app.backend.utils.Constant;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
@@ -25,13 +23,11 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
-import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -51,7 +47,8 @@ public class JwtFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private  final UserService userService;
     private final SecurityEndpointProvider securityEndpointProvider;
-    private  final CacheService cacheService;
+    private final ObjectMapper objectMapper;
+    private final AuthSessionStore authSessionStore;
 
 
     @Override
@@ -76,8 +73,13 @@ public class JwtFilter extends OncePerRequestFilter {
                 Claims claims = jwtService.parseClaim(token, Constant.TYPE_ACCESS_TOKEN);
                 final String username = jwtService.extractUsernameByClaim(claims);
                 final Integer userId = jwtService.extractUserIdByClaims(claims);
+
                 final String sid = jwtService.extractSidByClaims(claims);
                 final Integer authVersion = jwtService.extractAuthVersionByClaims(claims);
+
+                if(sid == null || authVersion == null){
+                    throw new CommonException(ErrorCode.AUTH_TOKEN_INVALID);
+                }
 
                 if(username != null && SecurityContextHolder.getContext().getAuthentication() == null){
                     List<String> roles = jwtService.extractRolesByClaim(claims);
@@ -96,7 +98,7 @@ public class JwtFilter extends OncePerRequestFilter {
                             throw new CommonException(ErrorCode.AUTH_TOKEN_INVALID);
                         }
 
-                        if(cacheService.getCache(RedisKey.refreshTokenTypeById(userId, authVersion, sid), String.class) == null){
+                        if(authSessionStore.getCacheRefreshToken(userId, authVersion, sid) == null){
                             throw new CommonException(ErrorCode.AUTH_TOKEN_INVALID);
                         }
 
@@ -127,7 +129,17 @@ public class JwtFilter extends OncePerRequestFilter {
         }
         catch(CommonException exception){
             SecurityContextHolder.clearContext();
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401
+            ErrorCode ec = exception.getErrorCode();
+            DataResponse<?> dataResponse = DataResponse.builder()
+                    .statusCode(ec.getCode())
+                    .message(ec.getDefaultMessage())
+                    .data(ec.getDefaultMessage())
+                    .build();
+            response.setStatus(ec.getHttpStatus().value()); // 401
+            response.setContentType("application/json");
+            response.setCharacterEncoding("UTF-8");
+            objectMapper.writeValue(response.getWriter(),dataResponse);
+//            response.setHeader(exception.getErrorCode().getCode(), exception.getErrorCode().getDefaultMessage());
             return;
         }
 //        catch (Exception e) {

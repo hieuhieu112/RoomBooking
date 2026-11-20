@@ -35,6 +35,7 @@ public enum ErrorCode {
 
     // ===== AUTH =====
     AUTH_NOT_ENOUGH("ERROR.AUTH.NOT_ENOUGH", "Account does not have permission", HttpStatus.FORBIDDEN),
+    AUTH_STORE_UNAVAILABLE("ERROR.AUTH.STORE_UNAVAILABLE", "Store does not available", HttpStatus.SERVICE_UNAVAILABLE),
     AUTH_UNAUTHORIZED("ERROR.AUTH.UNAUTHORIZED", "Unauthorized", HttpStatus.UNAUTHORIZED),
     AUTH_FORBIDDEN("ERROR.AUTH.FORBIDDEN", "Truy cập bị từ chối", HttpStatus.FORBIDDEN),
     AUTH_WRONG("ERROR.AUTH.WRONG", "Thông tin đăng nhập không chính xác", HttpStatus.FORBIDDEN),
