@@ -81,6 +81,7 @@ public class JwtService {
         } catch (JwtException e) {
             throw new CommonException(ErrorCode.AUTH_TOKEN_INVALID);
         }
+        //catch (NullPointerException e)
     }
 
     // select cai type token

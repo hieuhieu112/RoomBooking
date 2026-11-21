@@ -7,6 +7,8 @@ public class SecurityConstant {
     public static final String[] PUBLIC_ENDPOINTS = {
             "/roomimages/**",
             "/authen/login",
+            "/authen/forget-password",
+            "/authen/confirm-forget-password",
 //            "/authen/logout",
             "/actuator/health",
             "/authen/register",

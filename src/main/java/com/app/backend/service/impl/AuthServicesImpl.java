@@ -36,6 +36,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.apache.commons.codec.digest.DigestUtils;
 
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -55,6 +56,8 @@ public class AuthServicesImpl implements AuthServices {
     private final CacheService cacheService;
 
     private static final Duration OTP_CACHE_TTL = Duration.ofMinutes(5);
+
+    private static final int numberTryOTP = 5;
 
 
     @Override
@@ -82,7 +85,7 @@ public class AuthServicesImpl implements AuthServices {
             ResponseCookie cookie = ResponseCookie.from("rf-tk", refreshToken)
                     .httpOnly(true)
                     .secure(appProperties.getCookie().isSecure())
-                    .path("/api/v1/authen/refresh")
+                    .path("/rba/api/v1/authen/refresh")
                     .maxAge(appProperties.getJwt().getRefreshTokenExpireSeconds())
                     .sameSite(appProperties.getCookie().getSameSite())
                     .build();
@@ -116,11 +119,17 @@ public class AuthServicesImpl implements AuthServices {
                 0, request.getPass(), Status.LOCKED, request.getUsername(),
                 null, s);
         User u  = userService.createSaveDB(userRequest, Status.LOCKED);
-        String otp = String.format("%06d", new Random().nextInt(999999));
+        String otp = String.format("%06d", new SecureRandom().nextInt(999999));
 
         cacheService.setCache(
                 RedisKey.otpTypeById(request.getUsername()),
                 otp,
+                OTP_CACHE_TTL//RT_CACHE_TTL
+        );
+
+        cacheService.setCache(
+                RedisKey.tryTimeByID(request.getUsername()),
+                0,
                 OTP_CACHE_TTL//RT_CACHE_TTL
         );
         String subject = "Mã OTP kích hoạt email";
@@ -183,36 +192,102 @@ public class AuthServicesImpl implements AuthServices {
         else {
             throw new CommonException(ErrorCode.AUTH_WRONG);
         }
-//        String sid = UUID.randomUUID().toString();
-
-
-//        List<String> roles = userEntiy.getRoles().stream().map(Role::getName).toList();
-
-
-//        User user = new User();
-//        user.setId(userEntiy.getId());
-//        user.setUsername(userEntiy.getUsername());
-//        user.setRoles(
-//                roles.stream()
-//                        .map(roleName -> {
-//                            Role role = new Role();
-//                            role.setName(roleName);
-//                            return role;
-//                        })
-//                        .collect(Collectors.toSet())
-//        );
-
-//        String newAT = jwtService.generateAccesstoken(userEntiy,sid);
-
-//        return AuthResponse.builder()
-//                .accessToken(newAT)
-//                .expiresIn(appProperties.getJwt().getAccessTokenExpireSeconds())
-//                .build();
     }
 
     @Override
-    public void forgotPassword(String username) {
+    public void forgotPassword( ForgetPassRequest request) {
+        User userEntity = userService.getByUsername(request.getUsername());
 
+        userEntity.validStatus();
+
+        if(!userEntity.getEmail().equals(request.getEmail()))
+        {
+            throw new CommonException(ErrorCode.AUTH_EMAIL_NOTMATCH);
+        }
+        String otp = String.format("%06d", new SecureRandom().nextInt(999999));
+
+        cacheService.setCache(
+                RedisKey.otpForgetPassById(request.getUsername()),
+                otp,
+                OTP_CACHE_TTL//RT_CACHE_TTL
+        );
+
+        cacheService.setCache(
+                RedisKey.tryTimeByID(request.getUsername()),
+                0,
+                OTP_CACHE_TTL//RT_CACHE_TTL
+        );
+        String subject = "Mã OTP lay lai mat khau";
+
+        String html = """
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+            <h2 style="color: #333;">Kích hoạt email</h2>
+
+            <p>Xin chào,</p>
+
+            <p>
+                Bạn đang thực hiện lay lai mat khau cho tài khoản của mình.
+                Vui lòng sử dụng mã OTP bên dưới để hoàn tất:
+            </p>
+
+            <div style="
+                margin: 24px 0;
+                padding: 16px;
+                text-align: center;
+                background-color: #f5f5f5;
+                border-radius: 8px;
+                font-size: 32px;
+                font-weight: bold;
+                letter-spacing: 8px;
+                color: #222;
+            ">
+                %s
+            </div>
+
+            <p>
+                Mã OTP có hiệu lực trong <strong>5 phút</strong>.
+            </p>
+
+            <p>
+                Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.
+            </p>
+
+            <p style="color: #888; font-size: 12px; margin-top: 32px;">
+                Đây là email được gửi tự động, vui lòng không trả lời email này.
+            </p>
+        </div>
+        """.formatted(otp);
+
+        emailService.sendEmail(request.getEmail(), subject, html);
+
+
+    }
+
+    @Override
+    public void confirmForgotPassword(ConfirmForgetPassRequest request) {
+        Integer tryNumber = cacheService.getCache(RedisKey.tryTimeByID(request.getUsername()), Integer.class);
+
+        if(tryNumber > numberTryOTP){
+            evictOTPForgetPassCache(request.getUsername());
+            evictOTPTryTime(request.getUsername());
+            throw new CommonException(ErrorCode.AUTH_OTP_EXXCED);
+        }
+
+        cacheService.setCache(
+                RedisKey.tryTimeByID(request.getUsername()),
+                tryNumber+1,
+                OTP_CACHE_TTL//RT_CACHE_TTL
+        );
+
+        String otp = cacheService.getCache(RedisKey.otpForgetPassById(request.getUsername()), String.class);
+
+        if(otp != null && otp.equals(request.getOtp())){
+            evictOTPForgetPassCache(request.getUsername());
+            User userEntity = userService.getByUsername(request.getUsername());
+            userService.changePass(userEntity, request.getPassword());
+        }else {
+            throw new CommonException(ErrorCode.AUTH_OTP_NOTMATCH);
+        }
     }
 
     @Override
@@ -243,6 +318,10 @@ public class AuthServicesImpl implements AuthServices {
 
     @Override
     public AuthResponse refresh(String refreshToken, HttpServletResponse response) {
+
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new CommonException(ErrorCode.AUTH_TOKEN_INVALID);
+        }
         jwtService.validRefreshTokenExpired(refreshToken);
 
         Claims claims = jwtService.parseRefreshToken(refreshToken);
@@ -289,7 +368,7 @@ public class AuthServicesImpl implements AuthServices {
         ResponseCookie cookie = ResponseCookie.from("rf-tk", newRT)
                 .httpOnly(true)
                 .secure(appProperties.getCookie().isSecure())
-                .path("/api/v1/authen/refresh")
+                .path("/rba/api/v1/authen/refresh")
                 .maxAge(appProperties.getJwt().getRefreshTokenExpireSeconds())
                 .sameSite(appProperties.getCookie().getSameSite())
                 .build();
@@ -303,6 +382,19 @@ public class AuthServicesImpl implements AuthServices {
 
     @Override
     public void activeAccount(RegisterRequest request) {
+        Integer tryNumber = cacheService.getCache(RedisKey.tryTimeByID(request.getUsername()), Integer.class);
+
+        if(tryNumber > numberTryOTP){
+            evictOTPCache(request.getUsername());
+            evictOTPTryTime(request.getUsername());
+            throw new CommonException(ErrorCode.AUTH_OTP_EXXCED);
+        }
+
+        cacheService.setCache(
+                RedisKey.tryTimeByID(request.getUsername()),
+                tryNumber+1,
+                OTP_CACHE_TTL//RT_CACHE_TTL
+        );
 
         String otp = cacheService.getCache(RedisKey.otpTypeById(request.getUsername()), String.class);
 
@@ -317,6 +409,16 @@ public class AuthServicesImpl implements AuthServices {
     private void evictOTPCache(String username) {
 
         cacheService.evict(RedisKey.otpTypeById(username));
+    }
+
+    private void evictOTPForgetPassCache(String username) {
+
+        cacheService.evict(RedisKey.otpForgetPassById(username));
+    }
+
+    private void evictOTPTryTime(String username) {
+
+        cacheService.evict(RedisKey.tryTimeByID(username));
     }
 
 

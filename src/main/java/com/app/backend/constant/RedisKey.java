@@ -28,6 +28,14 @@ public class RedisKey {
         return OTP_PREFIX + "username:" + username;
     }
 
+    public static String otpForgetPassById(String username) {
+        return OTP_PREFIX + "forgetPass:" + username;
+    }
+
+    public static String tryTimeByID(String username) {
+        return OTP_PREFIX + "numberTry:" + username;
+    }
+
     public static String refreshTokenTypeById(Integer id, Integer authVersion, String uid) {
         return REFRESH_TOKEN_PREFIX + "id:" + id +":authversion:"+ authVersion + ":uid:" + uid;
     }

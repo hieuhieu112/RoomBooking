@@ -46,6 +46,7 @@ public enum ErrorCode {
     AUTH_ACCOUNT_LOCKED("ERROR.AUTH.ACCOUNT_LOCKED", "Tai khoan bi khoa", HttpStatus.FORBIDDEN),
     AUTH_EMAIL_NOTMATCH("ERROR.AUTH.EMAIL_NOTMATCH", "Email khong khop voi username", HttpStatus.FORBIDDEN),
     AUTH_OTP_NOTMATCH("ERROR.AUTH.OTP_NOTMATCH", "OTP khong chinh xac", HttpStatus.FORBIDDEN),
+    AUTH_OTP_EXXCED("ERROR.AUTH.OTP_EXXCED", "Qua so lan nhap OTP", HttpStatus.FORBIDDEN),
     AUTH_RESET_TOKEN_NOTMATCH("ERROR.AUTH.RESET_TOKEN_NOTMATCH", "RESET_TOKEN khong chinh xac", HttpStatus.FORBIDDEN),
     AUTH_ACCOUNT_DISABLED("ERROR.AUTH.ACCOUNT_DISABLED", "Account is disabled", HttpStatus.FORBIDDEN),
 
@@ -101,6 +102,8 @@ public enum ErrorCode {
 
     // ===== Booking =====
     BOOKING_NOT_FOUND("ERROR.BOOKING_NOT_FOUND", "Không tìm thấy booking", HttpStatus.NOT_FOUND),
+    BOOKING_TIME_INVALID("ERROR.BOOKING_TIME_INVALID", "THOI gian khong hop le", HttpStatus.NOT_FOUND),
+    BOOKING_STATUS_INVALID("ERROR.BOOKING_STATUS_INVALID", "trang thai khong hop le", HttpStatus.BAD_REQUEST),
     USER_NOT_AUTH_BOOKING("ERROR.USER_NOT_AUTH_BOOKING", "Người dùng không có quyền duyệt yêu cầu.", HttpStatus.BAD_REQUEST),
     ROOM_ALREADY_BOOKED("ERROR.ROOM_ALREADY_BOOKED", "Phòng đã được đặt trong khoảng thời gian này", HttpStatus.CONFLICT),
     ROOM_INVALID("ERROR.ROOM_INVALID", "Thông tin booking không hợp lệ.", HttpStatus.CONFLICT),

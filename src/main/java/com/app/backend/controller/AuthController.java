@@ -61,7 +61,7 @@ public class AuthController {
 
     @PostMapping(value = "/refresh")
     public ResponseEntity<DataResponse<AuthResponse>> refreshAT(
-            @CookieValue(name = "rf-tk", required = false) String refreshToken,
+            @CookieValue(name = "rf-tk") String refreshToken,
             HttpServletResponse response
     ){
         AuthResponse authResponse = authServices.refresh(refreshToken,response);
@@ -108,6 +108,34 @@ public class AuthController {
     ){
         ValidRequestUtil.validateRequest(result);
         authServices.activeAccount(request);
+        DataResponse<Void> response = DataResponse.<Void>builder()
+                .data(null)
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/forget-password")
+    public ResponseEntity<DataResponse<Void>> forgetPassword(
+            @Valid @RequestBody ForgetPassRequest request, BindingResult result
+    ){
+        ValidRequestUtil.validateRequest(result);
+        authServices.forgotPassword(request);
+        DataResponse<Void> response = DataResponse.<Void>builder()
+                .data(null)
+                .statusCode(StatusRes.SUCCESS)
+                .message("SUCCESS")
+                .build();
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping(value = "/confirm-forget-password")
+    public ResponseEntity<DataResponse<Void>> confirmForgetPassword(
+            @Valid @RequestBody ConfirmForgetPassRequest request, BindingResult result
+    ){
+        ValidRequestUtil.validateRequest(result);
+        authServices.confirmForgotPassword(request);
         DataResponse<Void> response = DataResponse.<Void>builder()
                 .data(null)
                 .statusCode(StatusRes.SUCCESS)

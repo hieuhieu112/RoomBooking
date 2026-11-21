@@ -53,6 +53,12 @@ public class RoomServiceImpl implements RoomService {
         return resp;
     }
 
+    public void checkRoomStatus(Room room){
+        if (!room.isValidStatus()){
+            throw  new CommonException(ErrorCode.ROOM_NOT_AVAILABLE);
+        }
+    }
+
     @Override
     public Room create(RoomRequest request, List<MultipartFile> images) {
         Room entity = new Room();

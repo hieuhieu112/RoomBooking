@@ -3,6 +3,7 @@ package com.app.backend.dtos.request;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.app.backend.entity.enumm.BookingStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -24,7 +25,7 @@ public class BookingRequest {
 
     private List<DeviceBorrowDetailRequest> deviceBorrowDetail;
 
-//    private BookingStatus status;
+    private BookingStatus status;
 
 //    @NotBlank(message = "thong tin người thue không được để trống")
 //    private Integer userId;

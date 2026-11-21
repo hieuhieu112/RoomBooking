@@ -14,6 +14,7 @@ public interface AuthServices {
     void activeAccount(RegisterRequest request);
 
 //    void changePassword(String username, String newPassword);
-    void forgotPassword(String username);
+    void forgotPassword( ForgetPassRequest request);
+    void confirmForgotPassword( ConfirmForgetPassRequest request);
     public void changePasswordMyAccount(ChangePasswordRequest request);
 }

@@ -60,6 +60,7 @@ public class BookingServiceImpl implements BookingService {
 
     public Boolean checkCanApprove(Booking entity){
         User user = userService.getById(AuthContextService.getContext().getUserId());
+        if(user.isAdmin()) return true;
         if(
                 user.getManagerGroup() == null
         ){
@@ -67,14 +68,10 @@ public class BookingServiceImpl implements BookingService {
         }
         else{
             ManagerGroup managerGroup = managerGroupService.getById( user.getManagerGroup().getId());
-            if (managerGroup.getRooms().stream().anyMatch(
+            return managerGroup.getRooms().stream().anyMatch(
                     room -> room.getId().equals(entity.getRoom().getId())
-            )
-            ){
-                return true;
-            }
+            );
         }
-        return false;
     }
 
     public Boolean checkPermission(Booking booking){
@@ -97,10 +94,19 @@ public class BookingServiceImpl implements BookingService {
         return false;
     }
 
+    public void isBookingValidStatus(BookingRequest request){
+        if(request.getStatus().equals(BookingStatus.DRAFT) || request.getStatus().equals(BookingStatus.INPROCESS)){
+            throw new CommonException(ErrorCode.BOOKING_STATUS_INVALID);
+        }
+    }
+
     @Override
     @Transactional
     public Booking create(BookingRequest request) {
         Booking entity = new Booking();
+
+        validDataBookingRequest(request);
+
         Room room = roomService.getById(request.getRoomId());
         if(!room.isValidStatus()){
             throw new CommonException(ErrorCode.ROOM_NOT_AVAILABLE);
@@ -117,7 +123,7 @@ public class BookingServiceImpl implements BookingService {
         entity.setStatus(BookingStatus.INPROCESS);
         entity.setUserUsing(userService.getById(AuthContextService.getContext().getUserId()));
         entity.setRoom(room);
-        entity.setStatus(BookingStatus.CREATED);
+        entity.setStatus(request.getStatus());
 
         //devices:
 
@@ -136,6 +142,37 @@ public class BookingServiceImpl implements BookingService {
 
         sendNotificationToApproval(room, room.getManagerGroup().getUsers(), entity.getId());
 
+        return (entity);
+    }
+
+    @Override
+    public Booking update(Integer id, BookingRequest request) {
+        Booking entity = getById(id);
+        validDataBookingRequest(request);
+
+        if(!checkPermission(entity)) throw  new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
+
+        Room room = roomService.getById(request.getRoomId());
+        if(!room.isValidStatus()){
+            throw new CommonException(ErrorCode.ROOM_NOT_AVAILABLE);
+        }
+
+        if(isRoomBooked(room.getId(), request.getStartTime(),request.getEndTime())){
+            throw  new CommonException(ErrorCode.ROOM_ALREADY_BOOKED);
+        }
+
+        entity.setRoom(roomService.getById(request.getRoomId()));
+
+        entity.setReason(request.getReason());
+        entity.setStartTime(request.getStartTime());
+        entity.setEndTime(request.getEndTime());
+        entity.setActualEndTime(request.getEndTime().plusMinutes(room.getCleaningDurationMinutes()));
+
+
+        entity.setStatus(request.getStatus());
+//        entity.setUserUsing(userService.getById(request.getUserId()));
+//        entity.setUserApproved(userService.getById(request.getApprovedByUserId()));
+        entity = repo.save(entity);
         return (entity);
     }
 
@@ -172,9 +209,6 @@ public class BookingServiceImpl implements BookingService {
         );
         return bookingResponse;
     }
-
-
-
 
 
     @Override // find by created and filter
@@ -333,9 +367,13 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public Booking approval(Integer id) {
         Booking entity = getById(id);
+
         if(!checkCanApprove(entity)){
             throw new CommonException(ErrorCode.USER_NOT_AUTH_BOOKING);
         }
+
+        roomService.checkRoomStatus(entity.getRoom());
+
 
         entity.setStatus(BookingStatus.BOOKED);
 
@@ -344,22 +382,6 @@ public class BookingServiceImpl implements BookingService {
 
         repo.save(entity);
         return entity;
-    }
-
-    @Override
-    public Booking update(Integer id, BookingRequest request) {
-        Booking entity = getById(id);
-        if(!checkPermission(entity)) throw  new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
-
-        entity.setReason(request.getReason());
-        entity.setStartTime(request.getStartTime());
-        entity.setEndTime(request.getEndTime());
-//        entity.setStatus(request.getStatus());
-//        entity.setUserUsing(userService.getById(request.getUserId()));
-        entity.setRoom(roomService.getById(request.getRoomId()));
-//        entity.setUserApproved(userService.getById(request.getApprovedByUserId()));
-        entity = repo.save(entity);
-        return (entity);
     }
 
     @Override
@@ -375,9 +397,11 @@ public class BookingServiceImpl implements BookingService {
         return repo.existsOverlappingBookings(roomId, startTime,endTime);
     }
 
-    private void validDataBooking(Booking b){
-        if (b.getStartTime().isAfter(b.getEndTime())){
-            throw  new CommonException(ErrorCode.ROOM_INVALID);
+    private void validDataBookingRequest(BookingRequest b){
+        if (b.getStartTime().isAfter(b.getEndTime()) || b.getStartTime().equals(b.getEndTime())){
+            throw  new CommonException(ErrorCode.BOOKING_TIME_INVALID);
         }
+
+        isBookingValidStatus(b);
     }
 }
