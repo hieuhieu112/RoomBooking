@@ -1,0 +1,5 @@
+# Created at 2026-11-24T22:55:14.101
+Boot Manifest-JAR contains absolute paths in classpath 'D:\document\unknow\web\RBA\AIigenRB\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

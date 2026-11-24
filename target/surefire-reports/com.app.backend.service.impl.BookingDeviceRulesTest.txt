@@ -1,0 +1,27 @@
+-------------------------------------------------------------------------------
+Test set: com.app.backend.service.impl.BookingDeviceRulesTest
+-------------------------------------------------------------------------------
+Tests run: 6, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 1.838 s <<< FAILURE! -- in com.app.backend.service.impl.BookingDeviceRulesTest
+com.app.backend.service.impl.BookingDeviceRulesTest.updateLocksBeforeReadingAvailabilityAndReplacingDetails -- Time elapsed: 0.034 s <<< FAILURE!
+org.mockito.exceptions.verification.VerificationInOrderFailure: 
+
+Verification in order failure
+Wanted but not invoked:
+deviceBorrowDetailService.deleteByBookingId(
+    42
+);
+-> at com.app.backend.service.impl.BookingDeviceRulesTest.updateLocksBeforeReadingAvailabilityAndReplacingDetails(BookingDeviceRulesTest.java:96)
+Wanted anywhere AFTER following interaction:
+deviceServiceImpl.getAllQuantityAvailable(
+    2030-01-01T09:00,
+    [10],
+    2030-01-01T10:00,
+    42
+);
+-> at com.app.backend.service.impl.BookingServiceImpl.update(BookingServiceImpl.java:259)
+
+	at com.app.backend.service.impl.BookingDeviceRulesTest.updateLocksBeforeReadingAvailabilityAndReplacingDetails(BookingDeviceRulesTest.java:96)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+

@@ -270,7 +270,7 @@ public class AuthServicesImpl implements AuthServices {
         if(tryNumber > numberTryOTP){
             evictOTPForgetPassCache(request.getUsername());
             evictOTPTryTime(request.getUsername());
-            throw new CommonException(ErrorCode.AUTH_OTP_EXXCED);
+            throw new CommonException(ErrorCode.AUTH_OTP_EXCEED);
         }
 
         cacheService.setCache(
@@ -387,7 +387,7 @@ public class AuthServicesImpl implements AuthServices {
         if(tryNumber > numberTryOTP){
             evictOTPCache(request.getUsername());
             evictOTPTryTime(request.getUsername());
-            throw new CommonException(ErrorCode.AUTH_OTP_EXXCED);
+            throw new CommonException(ErrorCode.AUTH_OTP_EXCEED);
         }
 
         cacheService.setCache(

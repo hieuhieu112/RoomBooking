@@ -56,10 +56,12 @@ public class Device extends BaseEntity {
     @JsonIgnore
     private List<DeviceIncidentDetail>  deviceIncidentDetails;
 
+    @JsonIgnore
     public Boolean isValidStatus(){
         return status.equals(DeviceStatus.ACTIVE);
     }
 
+    @JsonIgnore
     public void generateSerial(){
         this.serial = UUID.randomUUID().toString();
     }

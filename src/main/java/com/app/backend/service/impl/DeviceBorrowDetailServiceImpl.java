@@ -72,7 +72,7 @@ public class DeviceBorrowDetailServiceImpl implements DeviceBorrowDetailService 
     public void delete(Long id) { repo.deleteById(id); }
 
     @Override
-    public List<DeviceQuantityAvailable> getAllQuantityAvailable(LocalDateTime startTime, LocalDateTime endTime) {
-        return List.of();
+    public void deleteByBookingId(Integer id) {
+        repo.deleteAllByBookingId(id);
     }
 }

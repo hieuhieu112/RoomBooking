@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import com.app.backend.entity.enumm.BookingStatus;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
@@ -23,6 +24,7 @@ public class BookingRequest {
     @NotNull(message = "Thong tin phong không được để trống")
     private Integer roomId;
 
+    @Valid
     private List<DeviceBorrowDetailRequest> deviceBorrowDetail;
 
     private BookingStatus status;

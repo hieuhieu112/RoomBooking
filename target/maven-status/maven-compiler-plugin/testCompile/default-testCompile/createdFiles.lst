@@ -1,1 +1,3 @@
 com\app\backend\service\impl\AdminUserServiceTest.class
+com\app\backend\service\impl\DeviceLockPostgresTest.class
+com\app\backend\service\impl\BookingDeviceRulesTest.class

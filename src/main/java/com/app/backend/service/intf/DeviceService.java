@@ -9,6 +9,7 @@ public interface DeviceService {
     DeviceResponse mapToResponse(Device entity);
     Device create(DeviceRequest request);
     Device getById(Integer id);
+    List<Device> getByIdsForUpdate(List<Integer> ids);
     List<Device> getAll();
     Device update(Integer id, DeviceRequest request);
     void delete(Integer id);

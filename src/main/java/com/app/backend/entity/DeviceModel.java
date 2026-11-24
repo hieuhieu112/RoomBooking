@@ -1,5 +1,6 @@
 package com.app.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -31,5 +32,6 @@ public class DeviceModel {
     private DeviceType deviceType;
 
     @OneToMany(mappedBy = "deviceModel", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Device> device;
 }

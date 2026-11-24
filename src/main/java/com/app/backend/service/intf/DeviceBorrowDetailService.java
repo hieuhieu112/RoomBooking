@@ -17,5 +17,5 @@ public interface DeviceBorrowDetailService {
     DeviceBorrowDetail update(Long id, DeviceBorrowDetailRequest request);
     void delete(Long id);
 
-    List<DeviceQuantityAvailable> getAllQuantityAvailable(LocalDateTime startTime, LocalDateTime endTime);
+    void deleteByBookingId(Integer id);
 }

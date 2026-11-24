@@ -20,5 +20,5 @@ public interface BookingService {
     Booking approval(Integer id);
     Booking update(Integer id, BookingRequest request);
     void delete(Integer id);
-    Boolean isRoomBooked(Integer roomId, LocalDateTime startTime, LocalDateTime endTime);
+    Boolean isRoomBooked(Integer roomId, LocalDateTime startTime, LocalDateTime endTime, Integer bookingIdException);
 }

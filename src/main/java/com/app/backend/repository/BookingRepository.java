@@ -31,13 +31,16 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
     SELECT CASE WHEN COUNT(b) > 0 THEN true ELSE false END
     FROM Booking b
     WHERE b.room_id = :roomId
-      AND b.actual_end_time >= :startTime
-      AND b.start_time <= :endTime
+      AND b.actual_end_time > :startTime
+      AND b.start_time < :endTime
+      AND (b.status in (2,5,7))
+      AND (b.id <> :id or :id is null)
     """, nativeQuery = true)
     Boolean existsOverlappingBookings(
             @Param("roomId") Integer roomId,
             @Param("startTime") LocalDateTime startTime,
-            @Param("endTime") LocalDateTime endTime
+            @Param("endTime") LocalDateTime endTime,
+            @Param("id") Integer id
     );
 
 

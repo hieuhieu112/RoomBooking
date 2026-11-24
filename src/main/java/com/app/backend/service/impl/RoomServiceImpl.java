@@ -92,6 +92,11 @@ public class RoomServiceImpl implements RoomService {
         return repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.ROOM_NOT_FOUND));
     }
 
+    @Override
+    public Room getByIdForUpdate(Integer id) {
+        return repo.findByIdForUpdate(id).orElseThrow(() -> new CommonException(ErrorCode.ROOM_NOT_FOUND));
+    }
+
     public Page<Room> getRoomAvaiable(LocalDateTime start, LocalDateTime end, int page, int size) {
         Pageable p = PageRequest.of(page, size, Sort.by("id").descending());
         String time = start.toString();

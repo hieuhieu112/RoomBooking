@@ -51,7 +51,7 @@ public class DeviceController {
             @RequestParam LocalDateTime end
             ) {
         DataResponse<List<DeviceQuantityAvailable>> response = DataResponse.<List<DeviceQuantityAvailable>>builder()
-                .data(service.getAllQuantityAvailable(start, null, end))
+                .data(service.getAllQuantityAvailable(start, null, end ,null))
                 .statusCode(StatusRes.SUCCESS)
                 .message("SUCCESS")
                 .build();

@@ -53,12 +53,13 @@ public class DeviceServiceImpl implements DeviceService {
     }
 
     public List<DeviceQuantityAvailable> getAllQuantityAvailable(
-            LocalDateTime startTime, List<Integer> ids, LocalDateTime endTime
+            LocalDateTime startTime, List<Integer> ids, LocalDateTime endTime, Integer idException
     ) {
         List<DeviceQuantityAvailable> a = repo.findAllQuantityAvailable(
                 startTime == null ? null : startTime.toString(),
                 ids,
-                endTime == null ? null : endTime.toString()
+                endTime == null ? null : endTime.toString(),
+                idException
         );
         return a;
     }
@@ -103,6 +104,12 @@ public class DeviceServiceImpl implements DeviceService {
                 DEVICE_CACHE_TTL,
                 () -> repo.findById(id).orElseThrow(() -> new CommonException(ErrorCode.DEVICE_NOT_FOUND))
         );
+    };
+
+
+    @Override
+    public List<Device> getByIdsForUpdate(List<Integer> ids) {
+        return repo.findByIdForUpdate(ids);
     }
 
     @Override

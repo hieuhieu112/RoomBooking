@@ -44,7 +44,7 @@ public class DeviceModelServiceImpl implements DeviceModelService {
         DeviceModel entity = new DeviceModel();
         entity.setName(request.getName());
         entity.setDeviceType(deviceTypeService.getById(request.getDeviceTypeId()));
-        entity.setManufacturerDevice(manufacturerDeviceService.getById(request.getManufacturerDeviceId()));
+        if(request.getManufacturerDeviceId() != null) entity.setManufacturerDevice(manufacturerDeviceService.getById(request.getManufacturerDeviceId()));
         entity.setSpecifications(request.getSpecifications());
         entity = repo.save(entity);
         evictTopicCache(null);

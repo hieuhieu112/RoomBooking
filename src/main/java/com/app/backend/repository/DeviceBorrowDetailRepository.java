@@ -13,4 +13,7 @@ import java.util.List;
 public interface DeviceBorrowDetailRepository extends JpaRepository<DeviceBorrowDetail, Long> {
     @Query(value = "select * from device_borrow_detail where booking_id = :p_booking_id", nativeQuery = true)
     List<DeviceBorrowDetail> findAddByBookingId(@Param("p_booking_id") Integer p_booking_id);
+
+    @Query(value = "delete * from device_borrow_detail where booking_id = :p_booking_id", nativeQuery = true)
+    void deleteAllByBookingId(@Param("p_booking_id") Integer p_booking_id);
 }

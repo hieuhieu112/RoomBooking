@@ -11,6 +11,7 @@ public interface RoomService {
     RoomResponse mapToResponse(Room entity);
     Room create(RoomRequest request, List<MultipartFile> images);
     Room getById(Integer id);
+    Room getByIdForUpdate(Integer id);
     Page<Room> getAllPagin(int page, int size);
     Page<Room> getAllByFilter(String search, Integer houseId,Integer roomTypeId, int page, int size);
     Room update(Integer id, RoomRequest request, List<MultipartFile> images);

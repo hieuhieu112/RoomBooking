@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.app.backend.dtos.internal.AuthContext;
+import com.app.backend.dtos.internal.DeviceQuantityAvailable;
 import com.app.backend.entity.*;
 import com.app.backend.entity.enumm.BookingStatus;
 import com.app.backend.entity.enumm.NotificationType;
@@ -15,11 +17,13 @@ import com.app.backend.redis.NotificationEvent;
 import com.app.backend.redis.NotificationPublisher;
 import com.app.backend.service.AuthContextService;
 import com.app.backend.service.intf.DeviceBorrowDetailService;
+import jakarta.persistence.LockModeType;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.app.backend.dtos.request.*;
@@ -84,6 +88,7 @@ public class BookingServiceImpl implements BookingService {
         List<Role> roleList = currUser.getRoles().stream().filter(role -> role.getIsManager()).toList();
         if (
                 currUser.isManager()
+                        && currUser.getManagerGroup() != null
                         && currUser.getManagerGroup().getRooms().stream().anyMatch(room -> room.getId().equals(booking.getRoom().getId()))
         ){
             return true;
@@ -95,8 +100,17 @@ public class BookingServiceImpl implements BookingService {
     }
 
     public void isBookingValidStatus(BookingRequest request){
-        if(request.getStatus().equals(BookingStatus.DRAFT) || request.getStatus().equals(BookingStatus.INPROCESS)){
+        if(!request.getStatus().equals(BookingStatus.DRAFT) && !request.getStatus().equals(BookingStatus.INPROCESS)){
             throw new CommonException(ErrorCode.BOOKING_STATUS_INVALID);
+        }
+    }
+
+    private void checkOverlapRoom(BookingRequest request, Room room){
+
+        validDataBookingRequest(request);
+
+        if(!room.isValidStatus()){
+            throw new CommonException(ErrorCode.ROOM_NOT_AVAILABLE);
         }
     }
 
@@ -104,15 +118,10 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public Booking create(BookingRequest request) {
         Booking entity = new Booking();
-
-        validDataBookingRequest(request);
-
         Room room = roomService.getById(request.getRoomId());
-        if(!room.isValidStatus()){
-            throw new CommonException(ErrorCode.ROOM_NOT_AVAILABLE);
-        }
 
-        if(isRoomBooked(room.getId(), request.getStartTime(),request.getEndTime())){
+        checkOverlapRoom(request,room);
+        if(isRoomBooked(room.getId(), request.getStartTime(),request.getEndTime().plusMinutes(room.getCleaningDurationMinutes()), null)){
             throw  new CommonException(ErrorCode.ROOM_ALREADY_BOOKED);
         }
 
@@ -126,54 +135,175 @@ public class BookingServiceImpl implements BookingService {
         entity.setStatus(request.getStatus());
 
         //devices:
+        //getAllQuantityAvailable
 
         List<DeviceBorrowDetail> deviceBorrowDetails = new ArrayList<>();
-        for(DeviceBorrowDetailRequest devicerq: request.getDeviceBorrowDetail()){
-            Device device = deviceService.getById(devicerq.getDeviceId());
-            DeviceBorrowDetail deviceBorrowDetail = new DeviceBorrowDetail();
-            deviceBorrowDetail.setBooking(entity);
-            deviceBorrowDetail.setDevice(device);
-            deviceBorrowDetails.add(deviceBorrowDetail);
+        if(request.getDeviceBorrowDetail() != null){
+
+            //check duplicate
+            if(
+                    request.getDeviceBorrowDetail().size() > request.getDeviceBorrowDetail().stream().map(DeviceBorrowDetailRequest::getDeviceId).collect(Collectors.toSet()).size()
+            ){
+                throw new CommonException(ErrorCode.DEVICE_BORROW_DUPLICATE_DEVICE);
+            }
+
+            //lock
+            List<Device> deviceListInDB = deviceService.getByIdsForUpdate(request.getDeviceBorrowDetail().stream().map(DeviceBorrowDetailRequest::getDeviceId).toList());
+
+            if(
+                    request.getDeviceBorrowDetail().size() > deviceListInDB.size()
+            ){
+                throw new CommonException(ErrorCode.DEVICE_NOT_FOUND);
+            }
+
+            if(
+                    request.getDeviceBorrowDetail().size() > deviceListInDB.stream().filter(Device::isValidStatus).toList().size()
+            ){
+                throw new CommonException(ErrorCode.DEVICE_INACTIVE);
+            }
+
+            List<DeviceQuantityAvailable> quantityAvailableList = deviceService.getAllQuantityAvailable(
+                    request.getStartTime(),
+                    request.getDeviceBorrowDetail().stream().map(DeviceBorrowDetailRequest::getDeviceId).toList(),
+                    request.getEndTime(), null
+            );
+
+            for(DeviceBorrowDetailRequest devicerq: request.getDeviceBorrowDetail()){
+                if(
+                        devicerq.getQuantity() > Objects.requireNonNull(quantityAvailableList.stream()
+                                .filter(device -> device.getDeviceId().equals(devicerq.getDeviceId()))
+                                .findFirst()
+                                .orElse(null)).getAvailableQuantity()
+                ){
+                    throw new CommonException(ErrorCode.DEVICE_BORROW_QUANTITY_EXCEED);
+                }
+
+                //Device device = deviceService.getById(devicerq.getDeviceId());
+
+                Device device = deviceListInDB.stream()
+                        .filter(item -> Objects.equals(item.getId(), devicerq.getDeviceId()))
+                        .findFirst()
+                        .orElseThrow(() -> new CommonException(ErrorCode.DEVICE_NOT_FOUND));
+
+                if(!device.isValidStatus()) throw  new CommonException(ErrorCode.DEVICE_NOT_FOUND);
+
+                DeviceBorrowDetail deviceBorrowDetail = new DeviceBorrowDetail();
+                deviceBorrowDetail.setBooking(entity);
+                deviceBorrowDetail.setDevice(device);
+                deviceBorrowDetail.setQuantity(devicerq.getQuantity());
+
+                deviceBorrowDetails.add(deviceBorrowDetail);
+            }
+            entity.setDeviceBorrowDetail(deviceBorrowDetails);
         }
-        entity.setDeviceBorrowDetail(deviceBorrowDetails);
+
 
         entity.setUserApproved(null);
         entity = repo.save(entity);
-
-        sendNotificationToApproval(room, room.getManagerGroup().getUsers(), entity.getId());
-
+        if(entity.getStatus().equals(BookingStatus.INPROCESS)){
+            sendNotificationToApproval(room, room.getManagerGroup().getUsers(), entity.getId());
+        }
         return (entity);
     }
 
+    @Transactional
     @Override
     public Booking update(Integer id, BookingRequest request) {
         Booking entity = getById(id);
-        validDataBookingRequest(request);
-
-        if(!checkPermission(entity)) throw  new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
-
         Room room = roomService.getById(request.getRoomId());
-        if(!room.isValidStatus()){
-            throw new CommonException(ErrorCode.ROOM_NOT_AVAILABLE);
-        }
+        checkOverlapRoom(request,room);
 
-        if(isRoomBooked(room.getId(), request.getStartTime(),request.getEndTime())){
+
+        if(!entity.getStatus().equals(BookingStatus.DRAFT)){
+            throw new CommonException(ErrorCode.BOOKING_STATUS_INVALID);
+        }
+        if(!checkPermission(entity)) throw  new CommonException(ErrorCode.AUTH_NOT_ENOUGH);
+        if(isRoomBooked(request.getRoomId(), request.getStartTime(),request.getEndTime().plusMinutes(room.getCleaningDurationMinutes()), id)){
             throw  new CommonException(ErrorCode.ROOM_ALREADY_BOOKED);
         }
 
-        entity.setRoom(roomService.getById(request.getRoomId()));
+        entity.setRoom(room);
 
         entity.setReason(request.getReason());
         entity.setStartTime(request.getStartTime());
         entity.setEndTime(request.getEndTime());
         entity.setActualEndTime(request.getEndTime().plusMinutes(room.getCleaningDurationMinutes()));
-
-
         entity.setStatus(request.getStatus());
-//        entity.setUserUsing(userService.getById(request.getUserId()));
-//        entity.setUserApproved(userService.getById(request.getApprovedByUserId()));
+
+        //devices:
+        //getAllQuantityAvailable
+
+        List<DeviceBorrowDetail> deviceBorrowDetails = new ArrayList<>();
+        if(request.getDeviceBorrowDetail() != null){
+            //check duplicate
+            if(
+                    request.getDeviceBorrowDetail().size() > request.getDeviceBorrowDetail().stream().map(DeviceBorrowDetailRequest::getDeviceId).collect(Collectors.toSet()).size()
+            ){
+                throw new CommonException(ErrorCode.DEVICE_BORROW_DUPLICATE_DEVICE);
+            }
+
+            List<Device> deviceListInDB = deviceService.getByIdsForUpdate(request.getDeviceBorrowDetail().stream().map(DeviceBorrowDetailRequest::getDeviceId).toList());
+            if(
+                    request.getDeviceBorrowDetail().size() > deviceListInDB.size()
+            ){
+                throw new CommonException(ErrorCode.DEVICE_NOT_FOUND);
+            }
+
+            if(
+                    request.getDeviceBorrowDetail().size() > deviceListInDB.stream().filter(Device::isValidStatus).toList().size()
+            ){
+                throw new CommonException(ErrorCode.DEVICE_INACTIVE);
+            }
+
+            List<DeviceQuantityAvailable> quantityAvailableList = deviceService.getAllQuantityAvailable(
+                    request.getStartTime(),
+                    request.getDeviceBorrowDetail().stream().map(DeviceBorrowDetailRequest::getDeviceId).toList(),
+                    request.getEndTime(),
+                    id
+            );
+
+            for(DeviceBorrowDetailRequest devicerq: request.getDeviceBorrowDetail()){
+                if(
+                        devicerq.getQuantity() > Objects.requireNonNull(quantityAvailableList.stream()
+                                .filter(device -> device.getDeviceId().equals(devicerq.getDeviceId()))
+                                .findFirst()
+                                .orElse(null)).getAvailableQuantity()
+                ){
+                    throw new CommonException(ErrorCode.DEVICE_BORROW_QUANTITY_EXCEED);
+                }
+//                Device device = deviceService.getById(devicerq.getDeviceId());
+
+                Device device = deviceListInDB.stream()
+                        .filter(item -> Objects.equals(item.getId(), devicerq.getDeviceId()))
+                        .findFirst()
+                        .orElseThrow(() -> new CommonException(ErrorCode.DEVICE_NOT_FOUND));
+
+                DeviceBorrowDetail deviceBorrowDetail = new DeviceBorrowDetail();
+                deviceBorrowDetail.setBooking(entity);
+                deviceBorrowDetail.setDevice(device);
+                deviceBorrowDetail.setQuantity(devicerq.getQuantity());
+
+                deviceBorrowDetails.add(deviceBorrowDetail);
+            }
+
+
+            deleteDeviceBorrowByBookingID(id);
+            entity.setDeviceBorrowDetail(deviceBorrowDetails);
+        }
+        else {
+
+            deleteDeviceBorrowByBookingID(id);
+        }
         entity = repo.save(entity);
+
+        if(entity.getStatus().equals(BookingStatus.INPROCESS)){
+            sendNotificationToApproval(room, room.getManagerGroup().getUsers(), entity.getId());
+        }
         return (entity);
+    }
+
+    private void deleteDeviceBorrowByBookingID(Integer bookingid){
+        deviceBorrowDetailService.deleteByBookingId(bookingid);
     }
 
     private void sendNotificationToApproval(Room room, List<User> recevier, Integer id){
@@ -372,6 +502,8 @@ public class BookingServiceImpl implements BookingService {
             throw new CommonException(ErrorCode.USER_NOT_AUTH_BOOKING);
         }
 
+        if(!entity.getStatus().equals(BookingStatus.INPROCESS)) throw new CommonException(ErrorCode.BOOKING_STATUS_INVALID);
+
         roomService.checkRoomStatus(entity.getRoom());
 
 
@@ -392,9 +524,9 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Boolean isRoomBooked(Integer roomId, LocalDateTime startTime, LocalDateTime endTime) {
+    public Boolean isRoomBooked(Integer roomId, LocalDateTime startTime, LocalDateTime endTime, Integer bookingIdException) {
 
-        return repo.existsOverlappingBookings(roomId, startTime,endTime);
+        return repo.existsOverlappingBookings(roomId, startTime,endTime, bookingIdException);
     }
 
     private void validDataBookingRequest(BookingRequest b){

@@ -46,7 +46,7 @@ public enum ErrorCode {
     AUTH_ACCOUNT_LOCKED("ERROR.AUTH.ACCOUNT_LOCKED", "Tai khoan bi khoa", HttpStatus.FORBIDDEN),
     AUTH_EMAIL_NOTMATCH("ERROR.AUTH.EMAIL_NOTMATCH", "Email khong khop voi username", HttpStatus.FORBIDDEN),
     AUTH_OTP_NOTMATCH("ERROR.AUTH.OTP_NOTMATCH", "OTP khong chinh xac", HttpStatus.FORBIDDEN),
-    AUTH_OTP_EXXCED("ERROR.AUTH.OTP_EXXCED", "Qua so lan nhap OTP", HttpStatus.FORBIDDEN),
+    AUTH_OTP_EXCEED("ERROR.AUTH.OTP_EXCEED", "Qua so lan nhap OTP", HttpStatus.FORBIDDEN),
     AUTH_RESET_TOKEN_NOTMATCH("ERROR.AUTH.RESET_TOKEN_NOTMATCH", "RESET_TOKEN khong chinh xac", HttpStatus.FORBIDDEN),
     AUTH_ACCOUNT_DISABLED("ERROR.AUTH.ACCOUNT_DISABLED", "Account is disabled", HttpStatus.FORBIDDEN),
 
@@ -85,7 +85,11 @@ public enum ErrorCode {
     DEVICE_CATEGORY_NOT_FOUND("ERROR.DEVICE_CATEGORY_NOT_FOUND", "Không tìm thấy thể loại thiết bị", HttpStatus.NOT_FOUND),
     // ===== DEVICE=====
     DEVICE_NOT_FOUND("ERROR.DEVICE_NOT_FOUND", "Không tìm thấy thiết bị", HttpStatus.NOT_FOUND),
+    DEVICE_INACTIVE("ERROR.DEVICE_INACTIVE", "Thiet bi khong duoc su dung", HttpStatus.NOT_FOUND),
     SERIAL_EXIST("ERROR.SERIAL_EXIST", "Serial đã tồn tại", HttpStatus.BAD_REQUEST),
+    // ===== DEVICE_BORROW =====
+    DEVICE_BORROW_QUANTITY_EXCEED("ERROR.DEVICE_BORROW.QUANTITY_EXCEED", "So luong muon thiet bi da vuot qua so luong kha dung", HttpStatus.BAD_REQUEST),
+    DEVICE_BORROW_DUPLICATE_DEVICE("ERROR.DEVICE_BORROW.DUPLICATE_DEVICE", "Thiet bi bi trung", HttpStatus.CONFLICT),
     // ===== DEVICE_MODEL =====
     DEVICE_MODEL_NOT_FOUND("ERROR.DEVICE_MODEL_NOT_FOUND", "Không tìm thấy model thiết bị", HttpStatus.NOT_FOUND),
     // ===== DEVICE_INCIENT =====
